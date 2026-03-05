@@ -1,1 +1,8 @@
 .DS_Store
+# Environments
+.env
+.venv/
+env/
+venv/
+*.log
+__pycache__/
