@@ -1,8 +1,16 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from utils.user_roles import UserRole
+from enum import IntEnum
 
-# Create your models here.
+# UserRole enum to assign student what access they have
+class UserRole(IntEnum):
+    STUDENT = 0
+    TEACHER = 1
+    ADMIN = 2
+
+    @classmethod
+    def choices(cls):
+        return [(cls.value,cls.name) for cls in UserRole]
 
 class Arrangement(models.Model):
     extra_time = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
@@ -17,8 +25,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField('email', unique=True)
 
-    #TODO implement arrangement foreign key
-    arrangement = models.ForeignKey('Arrangement', on_delete=models.CASCADE, null=True, blank=True)
+    arrangement = models.OneToOneField(Arrangement, on_delete=models.SET_NULL, null=True, blank=True)
 
     REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
 
