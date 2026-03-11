@@ -1,10 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} User Creation {% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Same responsive centering as the login page */
+    .signup-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .form-signup {
+        width: 100%;
+        max-width: 400px; /* Slightly wider than login to fit the file upload nicely */
+        padding: 15px;
+        margin: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="signup-wrapper bg-light text-center">
+
+    <form method="POST" enctype="multipart/form-data" class="form-signup">
+        {% csrf_token %}
+
+        <h1 class="h3 mb-3 fw-normal">Create an Account</h1>
+
+        <p class="mb-4 small">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none">Log in here</a></p>
+
+        {% for field in form %}
+            <div class="text-start mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label small text-muted mb-1">{{ field.label }}</label>
+
+                {{ field }}
+
+                {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button class="w-100 btn btn-lg btn-primary mt-3" type="submit">Sign Up</button>
+    </form>
+
+</div>
+{% endblock %}
