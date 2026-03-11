@@ -1,10 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect
-from django.template import loader
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-
 from users.forms import CustomLoginForm, CustomSignupForm
 
 
