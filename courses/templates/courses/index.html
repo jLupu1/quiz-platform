@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-<body>
+{% block title %} QuizZ {% endblock %}
+
 {% block content %}
     {% if user.is_authenticated %}
     Hi {{ user.username }}!
@@ -8,5 +9,3 @@
     <a href="{% url 'login' %}">Log In</a>
     {% endif %}
 {% endblock %}
-</body>
-</html>
