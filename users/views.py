@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetDoneView, PasswordChangeView, \
-    PasswordResetConfirmView
+    PasswordResetConfirmView, PasswordResetCompleteView
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView, TemplateView
@@ -38,9 +38,7 @@ def error_404(request, exception):
     return render(request, 'errors/error_404.html', status=404)
 
 class ProfileView(LoginRequiredMixin, TemplateView):
-    # model = User
     template_name = 'profile/profile.html'
-    # context_object_name = 'user_profile'
 
 class CustomPasswordResetView(PasswordResetView):
     form_class = CustomPasswordResetForm
@@ -53,4 +51,7 @@ class CustomPasswordResetDoneView(PasswordResetDoneView):
 class CustomPasswordSetView(PasswordResetConfirmView):
     form_class = CustomSetPasswordForm
     template_name = 'registration/custom_reset_set_password.html'
-    success_url = reverse_lazy("password_change_done")
+    success_url = reverse_lazy("password_reset_complete")
+
+class CustomPasswordChangeDoneView(PasswordResetCompleteView):
+    template_name = 'registration/custom_password_reset_complete.html'
