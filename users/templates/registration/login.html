@@ -2,9 +2,9 @@
 {% load static %}
 
 {% block title %} Log In {% endblock %}
-{% block extra_css %} <link rel="stylesheet" href="{% static 'users/css/login.css' %}"> {% endblock %}
+{% block extra_css %} <link rel="stylesheet" href="{% static '/users/auth.css' %}"> {% endblock %}
 
-
+{#'/users/css/login.css'#}
 {% block content %}
 <div class="login-wrapper bg-light text-center">
 
@@ -18,9 +18,8 @@
         {% if form.errors %}
             <p class="text-danger small famil">Invalid username or password.</p>
         {% endif %}
-
+        <p class="mb-4 small">Forgot your password? <a href="{% url 'password_reset' %}">Reset it here </a> </p>
         <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
     </form>
-
 </div>
 {% endblock %}

@@ -24,7 +24,6 @@ from users.views import CustomLoginView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
-    path('users/login/',CustomLoginView.as_view(),name='login'),
     path('users/',include("django.contrib.auth.urls")),
     path('',courses.views.index),
     # path('courses/',include("courses.urls")),

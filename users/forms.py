@@ -1,7 +1,7 @@
 from cProfile import label
 
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordResetForm, SetPasswordForm
 from django.contrib.auth import get_user_model
 
 
@@ -71,5 +71,22 @@ class CustomSignupForm(UserCreationForm):
         model = get_user_model()
         fields = ('username', 'first_name', 'last_name', 'email', 'role', 'user_picture')
 
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(label='Email',
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your email',
+        })
+    )
 
+class CustomSetPasswordForm(SetPasswordForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+        # Loop through Django's default fields and add Bootstrap styling
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+
+        # Optional: Rename the labels to look a bit cleaner
+        self.fields['new_password1'].label = "New Password"
+        self.fields['new_password2'].label = "Confirm Password"

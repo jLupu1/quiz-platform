@@ -34,3 +34,17 @@
     .form-signin input[name="email"] {
         margin-bottom: 15px;
     }
+
+ .signup-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+ .form-signup {
+        width: 100%;
+        max-width: 400px;
+        padding: 15px;
+        margin: auto;
+    }
