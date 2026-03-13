@@ -1,7 +1,8 @@
 from cProfile import label
 
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordResetForm, SetPasswordForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, PasswordResetForm, SetPasswordForm, \
+    PasswordChangeForm
 from django.contrib.auth import get_user_model
 
 
@@ -90,3 +91,10 @@ class CustomSetPasswordForm(SetPasswordForm):
         # Optional: Rename the labels to look a bit cleaner
         self.fields['new_password1'].label = "New Password"
         self.fields['new_password2'].label = "Confirm Password"
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form-control'
+

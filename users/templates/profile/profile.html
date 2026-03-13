@@ -6,6 +6,19 @@
 {% block content %}
 <div class="container mt-5">
 
+    {% if messages %}
+        <div class="row justify-content-center mb-3">
+            <div class="col-md-8">
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show text-center shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
     <h1 class="mb-4 text-center">Hello, {{ user.first_name }} 👋</h1>
 
     <div class="row g-4">
@@ -31,7 +44,10 @@
 
                     <div class="text-start px-4">
                         <p class="mb-2"><strong>Account Type:</strong> {{ user.get_role_display }}</p>
-                        <p class="mb-0"><strong>Email:</strong> {{ user.email }}</p>
+                        <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
+                        <p class="mb-2"><strong>Password:</strong> *********</p>
+
+                        <a href="{% url 'password_change' %}" class="btn btn-danger mt-2">Change password</a>
                     </div>
 
                 </div>

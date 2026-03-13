@@ -4,6 +4,7 @@ from users import views
 
 urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('password_change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
 
     path('password_reset/', views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
