@@ -29,5 +29,21 @@ class User(AbstractUser):
 
     REQUIRED_FIELDS = ['first_name', 'last_name', 'email']
 
+    @property
+    def is_student(self):
+        return self.role == UserRole.STUDENT
+
+    @property
+    def is_teacher(self):
+        return self.role == UserRole.TEACHER
+
+    @property
+    def is_admin(self):
+        return self.role == UserRole.ADMIN
+
+    @property
+    def is_staff_member(self):
+        return self.role in [UserRole.TEACHER, UserRole.ADMIN]
+
 
 

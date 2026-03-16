@@ -20,7 +20,7 @@ class CustomLoginView(UserPassesTestMixin,LoginView):
         return not self.request.user.is_authenticated
 
 
-class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
+class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = CustomSignupForm
     success_url = reverse_lazy("signup")
     template_name = 'registration/signup.html'
@@ -41,6 +41,9 @@ def error_404(request, exception):
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'profile/profile.html'
+
+    def handle_no_permission(self):
+        return redirect('/users/login')
 
 class CustomPasswordResetView(PasswordResetView):
     form_class = CustomPasswordResetForm

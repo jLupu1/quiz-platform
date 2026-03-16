@@ -13,7 +13,7 @@ class Course(models.Model):
 
     # my_user.enrolled_courses.all()
     # my_course.students.all()
-    students = models.ManyToManyField(
+    enrollment = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         related_name='enrolled_courses',
         blank=True  # Allows a course to exist with zero students initially
