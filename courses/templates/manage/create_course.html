@@ -6,33 +6,30 @@
 
 {% block content %}
 <div class="signup-wrapper bg-light text-center">
+    <form method="POST">
+        {% csrf_token %}
+        <h1 class="h3 mb-3 fw-normal">Create a New Course</h1>
 
-                    <form method="POST">
-                        {% csrf_token %}
-                        <h1 class="h3 mb-3 fw-normal">Create a New Course</h1>
 
+        {% for field in form %}
+            <div class="mb-3">
+                <label for="{{ field.id_for_label }}" class="form-label small text-muted mb-1">{{ field.label }}</label>
 
-                        {% for field in form %}
-                            <div class="mb-3">
-{#                                <label class="form-label fw-bold">{{ field.label }}</label>#}
-                                <label for="{{ field.id_for_label }}" class="form-label small text-muted mb-1">{{ field.label }}</label>
+                {{ field }}
 
-                                {{ field }}
+                {% if field.name == 'teachers' or field.name == 'students' %}
+                    <div class="form-text small text-muted">Hold down Ctrl (Windows) or Command (Mac) to select multiple users.</div>
+                {% endif %}
 
-                                {% if field.name == 'teachers' or field.name == 'students' %}
-                                    <div class="form-text small text-muted">Hold down Ctrl (Windows) or Command (Mac) to select multiple users.</div>
-                                {% endif %}
-
-                                {% if field.errors %}
-                                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-
-                        <div class="d-grid gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg">Create Course</button>
-                            <a href="{% url 'courses' %}" class="btn btn-outline-secondary">Cancel</a>
-                        </div>
-                    </form>
-                </div>
+                {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <div class="d-grid gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">Create Course</button>
+            <a href="{% url 'courses' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
 {%  endblock %}
