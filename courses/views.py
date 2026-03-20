@@ -85,5 +85,13 @@ def admin_course_list(request):
     }
     return render(request, 'courses/admin_courses_list.html', context)
 
-
+def search_courses(request):
+    courses = Course.objects.all()
+    search_text = request.GET.get('search', '')
+    if search_text:
+        courses = courses.filter(
+            Q(code__icontains=search_text) |
+            Q(name__icontains=search_text)
+        )
+    return render(request, 'partials/course_record_partial.html',{'courses': courses})
 

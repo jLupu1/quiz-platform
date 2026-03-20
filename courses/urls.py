@@ -9,4 +9,6 @@ urlpatterns = [
     path('detail/<int:pk>/search-students/', views.search_course_students, name='search_course_students'),
 
     path('manage/', views.admin_course_list, name='admin_course_list'),
+    path('manage/search-course/', views.search_courses, name='search_course'),
+
 ]
