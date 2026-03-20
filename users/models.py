@@ -11,7 +11,6 @@ class UserRole(IntEnum):
     @classmethod
     def choices(cls):
         return [(cls.value,cls.name) for cls in UserRole]
-
 class Arrangement(models.Model):
     extra_time = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
     rest_breaks = models.IntegerField(null=True, blank=True)
@@ -20,7 +19,7 @@ class Arrangement(models.Model):
 class User(AbstractUser):
     role = models.IntegerField(choices=UserRole.choices(), default=UserRole.STUDENT)
 
-    user_pic = models.ImageField(upload_to='profile_pics/', null=True, blank=True) #TODO need to implement upload directory
+    user_pic = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField('email', unique=True)

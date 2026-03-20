@@ -23,32 +23,32 @@ class CustomSignupForm(UserCreationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={
         'class': 'form-control',
     }))
-    password1 = forms.CharField(label='Password *',
+    password1 = forms.CharField(label='Password',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control'
         })
     )
-    password2 = forms.CharField(label='Confirm Password *',
+    password2 = forms.CharField(label='Confirm Password',
         widget=forms.PasswordInput(attrs={
             'class': 'form-control'
         })
     )
-    first_name = forms.CharField(label='First Name *',
+    first_name = forms.CharField(label='First Name',
         widget=forms.TextInput(attrs={
             'class': 'form-control'
         })
     )
-    last_name = forms.CharField(label='Last Name *',
+    last_name = forms.CharField(label='Last Name',
         widget=forms.TextInput(attrs={
             'class': 'form-control'
         })
     )
-    email = forms.EmailField(label='Email *',
+    email = forms.EmailField(label='Email',
         widget=forms.EmailInput(attrs={
             'class': 'form-control'
         })
     )
-    role = forms.ChoiceField(label='Role *', widget=forms.Select(attrs={
+    role = forms.ChoiceField(label='Role', widget=forms.Select(attrs={
         'class': 'form-select',
         'id': 'role'
     }),
