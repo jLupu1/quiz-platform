@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Manage Courses {% endblock title %}
+
+{% block content %}
+<div class="container-fluid px-4 px-lg-5 mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold mb-0 text-dark">Manage Courses</h1>
+        <a href="{% url 'create_course' %}" class="btn btn-primary rounded-2 shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> New Course
+        </a>
+    </div>
+
+    <div class="card border-dark rounded-2 shadow-sm mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light border-bottom border-dark">
+                        <tr>
+                            <th scope="col" class="ps-4 py-3 text-secondary fw-bold">Course Code</th>
+                            <th scope="col" class="py-3 text-secondary fw-bold">Course Name</th>
+                            <th scope="col" class="py-3 text-center text-secondary fw-bold">Visit</th>
+                            <th scope="col" class="pe-4 py-3 text-center text-secondary fw-bold">Manage</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <th scope="row" class="ps-4 py-3">
+                                <span class="badge bg-primary fs-6 px-3 py-2 rounded-2">{{ course.code }}</span>
+                            </th>
+
+                            <td class="py-3 fw-bold text-dark fs-5">{{ course.name }}</td>
+
+                            <td class="py-3 text-center">
+                                <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-outline-primary px-3 rounded-2 fw-medium">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Visit
+                                </a>
+                            </td>
+
+                            <td class="pe-4 py-3 text-center">
+                                <a href="#" class="btn btn-sm btn-outline-dark px-3 rounded-2 fw-medium">
+                                    <i class="bi bi-gear me-1"></i> Manage
+                                </a>
+                            </td>
+                        </tr>
+
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-journal-x display-4 d-block mb-3"></i>
+                                <h5>No courses found</h5>
+                                <p class="mb-0">You haven't been assigned to manage any courses yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

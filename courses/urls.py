@@ -7,4 +7,6 @@ urlpatterns = [
     path('create/',views.CourseCreateView.as_view(),name='create_course'),
     path('',views.CoursesView.as_view(),name='courses'),
     path('detail/<int:pk>/search-students/', views.search_course_students, name='search_course_students'),
+
+    path('manage/', views.admin_course_list, name='admin_course_list'),
 ]

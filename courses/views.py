@@ -60,17 +60,30 @@ def course_detail(request, pk):
 
 @login_required(login_url='/users/login')
 def search_course_students(request,pk):
+    # returns 404 if not found
     course = get_object_or_404(Course, pk=pk)
     search_text = request.GET.get('search', '')
 
     students = course.enrollment.filter(role=UserRole.STUDENT)
 
+    # Filters out based on what I searched for in the text box
     if search_text:
         students = students.filter(
             Q(first_name__icontains=search_text) |
             Q(last_name__icontains=search_text) |
             Q(username__icontains=search_text)
         )
-
     return render(request, 'partials/student_list_partial.html', {'students': students})
+
+# Admin page to see a complete list of courses
+@login_required(login_url='/users/login')
+@user_passes_test(lambda user: user.is_admin)
+def admin_course_list(request):
+    courses = Course.objects.all()
+    context = {
+        'courses': courses
+    }
+    return render(request, 'courses/admin_courses_list.html', context)
+
+
 
