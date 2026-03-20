@@ -45,5 +45,8 @@ class User(AbstractUser):
     def is_staff_member(self):
         return self.role in [UserRole.TEACHER, UserRole.ADMIN]
 
+    def __str__(self):
+        return self.first_name + " " + self.last_name + " (" + self.username + ")"
+
 
 

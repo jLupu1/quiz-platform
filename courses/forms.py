@@ -8,6 +8,17 @@ User = get_user_model()
 
 
 class CourseCreationForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = ['name', 'code', 'teachers', 'students']
+
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Intro to Java'}),
+            'code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. COM1003'}),
+            'teachers': forms.SelectMultiple(attrs={'class': 'form-select'}),
+            'students': forms.SelectMultiple(attrs={'class': 'form-select'}),
+        }
+
     # 1. Create two UI fields that ONLY exist on this form, not in the database
     teachers = forms.ModelMultipleChoiceField(
         queryset=User.objects.filter(role=UserRole.TEACHER),
@@ -22,11 +33,6 @@ class CourseCreationForm(forms.ModelForm):
         required=False,
         label="Enroll Students"
     )
-
-    class Meta:
-        model = Course
-        # 2. Leave 'enrollment' OUT of this list so Django doesn't render a 3rd mixed box!
-        fields = ['name', 'code']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
