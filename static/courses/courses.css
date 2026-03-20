@@ -1,3 +1,8 @@
-/*body{*/
-/*    background: rgb(248, 249, 250);*/
-/*}*/
+input:focus{
+    outline:none;
+}
+
+#student-list{
+    max-height: 50vh;
+    overflow-y: auto;
+}

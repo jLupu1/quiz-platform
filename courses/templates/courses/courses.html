@@ -2,11 +2,12 @@
 {% block title %} View Courses {% endblock %}
 
 {% block content %}
+
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>My Enrolled Courses</h2>
 
-        {% if user.is_teacher or user.is_admin %}
+        {% if user.is_admin %}
             <a href="{% url 'create_course' %}" class="btn btn-success">+ New Course</a>
         {% endif %}
     </div>
@@ -28,7 +29,9 @@
                     </div>
 
                     <div class="card-footer bg-transparent border-0 pb-3">
-                        <button class="btn btn-outline-primary w-100">View Course</button>
+                        <a href="detail/{{ course.id }}">
+                            <button class="btn btn-outline-primary w-100">View Course</button>
+                        </a>
                     </div>
                 </div>
             </div>
