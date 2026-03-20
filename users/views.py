@@ -1,8 +1,10 @@
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetDoneView, PasswordChangeView, \
     PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, DetailView, TemplateView
@@ -20,7 +22,7 @@ class CustomLoginView(UserPassesTestMixin,LoginView):
         return not self.request.user.is_authenticated
 
 
-class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
+class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     form_class = CustomSignupForm
     success_url = reverse_lazy("signup")
     template_name = 'registration/signup.html'
@@ -32,6 +34,34 @@ class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin,CreateView):
     def handle_no_permission(self):
         return redirect('/')
 
+
+@login_required(login_url='/users/login')
+@user_passes_test(lambda user: user.is_admin)
+def admin_user_list(request):
+    users = User.objects.all()
+    context = {
+        'users': users
+    }
+    return render(request, 'manage/admin_user_list.html', context)
+
+@login_required(login_url='/users/login')
+@user_passes_test(lambda u: u.is_admin)
+def admin_search_user(request):
+    users = User.objects.all()
+    search = request.GET.get('search', '')
+
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search) |
+            Q(id__icontains=search) |
+            Q(full_name__icontains=search)
+        )
+    return render(request,"partials/user_record_partial.html",{"users":users})
+
+
 # Error views
 def error_403(request, exception):
     return render(request, 'errors/error_403.html', status=403)
@@ -41,6 +71,9 @@ def error_404(request, exception):
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'profile/profile.html'
+
+    def handle_no_permission(self):
+        return redirect('/users/login')
 
 class CustomPasswordResetView(PasswordResetView):
     form_class = CustomPasswordResetForm
