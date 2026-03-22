@@ -103,11 +103,15 @@ class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     template_name = 'registration/signup.html'
 
     def test_func(self):
-        print(self.request.user.role)
-        return self.request.user.role == 2
+        return self.request.user.role == UserRole.ADMIN
 
     def handle_no_permission(self):
         return redirect('/')
+
+    def post(self, request, *args, **kwargs):
+        print("🚨 --- INCOMING DATA CHECK --- 🚨")
+        print("FILES ATTACHED:", request.FILES)
+        return super().post(request, *args, **kwargs)
 
 class CustomPasswordResetView(PasswordResetView):
     form_class = CustomPasswordResetForm

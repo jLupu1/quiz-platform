@@ -59,7 +59,7 @@ class CustomSignupForm(UserCreationForm):
         ]
     )
 
-    user_picture = forms.ImageField(label='Profile Picture',
+    user_pic = forms.ImageField(label='Profile Picture',
         required=False,
         widget=forms.FileInput(attrs={
             'class': 'form-control'
@@ -68,7 +68,7 @@ class CustomSignupForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'user_picture')
+        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'user_pic')
 
 class CustomPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(label='Email',
