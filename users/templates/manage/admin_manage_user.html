@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Update User {% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="card-header bg-primary text-white p-4 text-center border-0">
+                    <i class="bi bi-person-gear display-4 mb-2 d-block text-white"></i>
+                    <h2 class="h3 mb-0 fw-bold">Update Profile</h2>
+                    <p class="text-white-50 mb-0 mt-1">Modify user account details</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                            <div class="mb-4 text-start">
+
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold text-dark mb-1 d-flex align-items-center">
+                                    {{ field.label }}
+                                    {% if field.field.required %}
+                                        <span class="text-danger ms-1">*</span>
+                                    {% endif %}
+                                </label>
+
+                                {{ field }}
+
+                                {% if field.help_text %}
+                                    <div class="form-text small text-muted mt-1">{{ field.help_text }}</div>
+                                {% endif %}
+
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1 fw-medium">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ field.errors|striptags }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+                        {% endfor %}
+
+                        <hr class="my-4 text-muted">
+
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-light border px-4 rounded-3 fw-medium">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 rounded-3 fw-medium">
+                                <i class="bi bi-floppy-fill me-1"></i> Save Changes
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -11,34 +11,14 @@ from django.views.generic import CreateView, UpdateView, DetailView, TemplateVie
 from users.forms import *
 from django.contrib.auth import get_user_model
 
+from users.models import UserRole
+
 User = get_user_model()
-
-
-class CustomLoginView(UserPassesTestMixin,LoginView):
-    form_class = CustomLoginForm
-    template_name = 'registration/login.html'
-
-    def test_func(self):
-        return not self.request.user.is_authenticated
-
-
-class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
-    form_class = CustomSignupForm
-    success_url = reverse_lazy("signup")
-    template_name = 'registration/signup.html'
-
-    def test_func(self):
-        print(self.request.user.role)
-        return self.request.user.role == 2
-
-    def handle_no_permission(self):
-        return redirect('/')
-
 
 @login_required(login_url='/users/login')
 @user_passes_test(lambda user: user.is_admin)
 def admin_user_list(request):
-    users = User.objects.all()
+    users = User.objects.all().order_by('last_name', 'first_name')
     context = {
         'users': users
     }
@@ -61,6 +41,26 @@ def admin_search_user(request):
         )
     return render(request,"partials/user_record_partial.html",{"users":users})
 
+# @login_required(login_url='/users/login')
+# @user_passes_test(lambda u: u.is_admin)
+# def admin_manage_user(request, pk):
+#     user = User.objects.get(id=pk)
+#     context = {"user":user}
+#     return render(request, 'manage/admin_manage_user.html', context)
+#
+
+class UpdateUserView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = User
+    context_object_name = 'edited_user'
+    template_name = 'manage/admin_manage_user.html'
+    fields = ['first_name', 'last_name', 'email','role','is_active']
+    success_url = reverse_lazy('admin_user_list')
+
+    def test_func(self):
+        return self.request.user.role == UserRole.ADMIN
+
+    def handle_no_permission(self):
+        return redirect('/users/login')
 
 # Error views
 def error_403(request, exception):
@@ -74,6 +74,25 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     def handle_no_permission(self):
         return redirect('/users/login')
+class CustomLoginView(UserPassesTestMixin,LoginView):
+    form_class = CustomLoginForm
+    template_name = 'registration/login.html'
+
+    def test_func(self):
+        return not self.request.user.is_authenticated
+
+
+class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    form_class = CustomSignupForm
+    success_url = reverse_lazy("signup")
+    template_name = 'registration/signup.html'
+
+    def test_func(self):
+        print(self.request.user.role)
+        return self.request.user.role == 2
+
+    def handle_no_permission(self):
+        return redirect('/')
 
 class CustomPasswordResetView(PasswordResetView):
     form_class = CustomPasswordResetForm
