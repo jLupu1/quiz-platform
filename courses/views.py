@@ -50,7 +50,7 @@ def course_detail(request, pk):
 
     context = {
         'course': course,
-        'default_students': course.enrollment.filter(role=UserRole.STUDENT)  # Add this!
+        'default_students': course.enrollment.filter(role=UserRole.STUDENT,is_active=True),
     }
     # context will need course detail and quizzes
     if request.user.is_teacher or request.user.is_admin:
@@ -64,7 +64,7 @@ def search_course_students(request,pk):
     course = get_object_or_404(Course, pk=pk)
     search_text = request.GET.get('search', '')
 
-    students = course.enrollment.filter(role=UserRole.STUDENT)
+    students = course.enrollment.filter(role=UserRole.STUDENT,is_active=True)
 
     # Filters out based on what I searched for in the text box
     if search_text:

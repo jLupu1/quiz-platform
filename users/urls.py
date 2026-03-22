@@ -20,6 +20,7 @@ urlpatterns = [
     # Admin Manage URLs
     path('manage/',views.admin_user_list,name='admin_user_list'),
     path('manage/search-user', views.admin_search_user, name='search_user'),
-    path('manage/<int:pk>',views.UpdateUserView.as_view(),name='admin_manage_user')
+    path('manage/<int:pk>',views.UpdateUserView.as_view(),name='admin_manage_user'),
+    path('manage/<int:user_id>/remove-course/<int:course_id>/', views.disenroll_user_from_course, name='disenroll_user'),
 
 ]
