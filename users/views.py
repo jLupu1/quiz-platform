@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView, PasswordResetView, PasswordRese
     PasswordResetConfirmView, PasswordResetCompleteView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Q
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
@@ -73,8 +74,7 @@ def disenroll_user_from_course(request,user_id, course_id):
     print(course.name,user)
 
     course.enrollment.remove(user)
-    messages.success(request, 'Course enrollment removed successfully')
-    return redirect('admin_manage_user', pk=user_id)
+    return HttpResponse("")
 
 
 # Error views
