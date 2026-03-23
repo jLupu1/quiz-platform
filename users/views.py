@@ -89,6 +89,13 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
     def handle_no_permission(self):
         return redirect('/users/login')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['enrolled_courses'] = self.request.user.enrolled_courses.all()
+        return context
+
+
 class CustomLoginView(UserPassesTestMixin,LoginView):
     form_class = CustomLoginForm
     template_name = 'registration/login.html'

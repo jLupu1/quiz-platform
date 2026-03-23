@@ -65,11 +65,23 @@
                                 </div>
 
                                 <div class="col-md-5 d-flex justify-content-center justify-content-md-end mt-4 mt-md-0">
+                                {% if edited_user.user_pic %}
+                                    <div class="card border-dark rounded-2 shadow-none overflow-hidden d-flex align-items-center justify-content-center"
+                                         style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
+
+                                        <img src="{{ edited_user.user_pic.url }}"
+                                             alt="{{ edited_user.first_name }}'s Profile Picture"
+                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+
+                                {% else %}
                                     <div class="card p-3 border-dark rounded-2 shadow-none d-flex flex-column align-items-center justify-content-center text-muted text-center"
                                          style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
                                         <i class="bi bi-image display-1 mb-2"></i>
-                                        <span class="small fw-medium">Photo Placeholder</span>
+                                        <span class="small fw-medium">No Photo</span>
                                     </div>
+
+                                {% endif %}
                                 </div>
                             </div>
                         </form>

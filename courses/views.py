@@ -83,7 +83,7 @@ def admin_course_list(request):
     context = {
         'courses': courses
     }
-    return render(request, 'courses/admin_courses_list.html', context)
+    return render(request, 'manage/admin_courses_list.html', context)
 
 def search_courses(request):
     courses = Course.objects.all()
