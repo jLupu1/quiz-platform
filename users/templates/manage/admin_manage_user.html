@@ -23,65 +23,124 @@
                             {% csrf_token %}
 
                             <div class="row mb-5 align-items-start">
-
                                 <div class="col-md-7 text-start pe-md-5">
-                                    {% for field in form %}
-                                        <div class="mb-4">
+                                        {% for field in form %}
 
-                                            {% if field.widget.input_type == 'checkbox' or field.name == 'is_active' %}
-                                                <div class="form-check text-start mt-1">
-                                                    {{ field }}
-                                                    <label class="form-check-label fw-medium ms-2 fs-6 text-muted"
-                                                           for="{{ field.id_for_label }}">
-                                                        <span class="text-dark fw-bold me-1">Active</span>
-                                                        - {{ field.help_text }}
+                                            {% if field.name != 'extra_time_percentage' and field.name != 'rest_breaks' and field.name != 'special_equipment'%}
+                                                <div class="mb-4">
+
+                                                {% if field.widget.input_type == 'checkbox' or field.name == 'is_active' %}
+                                                    <div class="form-check text-start mt-1">
+                                                        {{ field }}
+                                                        <label class="form-check-label fw-medium ms-2 fs-6 text-muted"
+                                                               for="{{ field.id_for_label }}">
+                                                            <span class="text-dark fw-bold me-1">Active</span>
+                                                            - {{ field.help_text }}
+                                                        </label>
+                                                    </div>
+
+                                                {% else %}
+                                                    <label for="{{ field.id_for_label }}"
+                                                           class="form-label fw-bold text-dark mb-1">
+                                                        {{ field.label }}
+                                                        {% if field.field.required %}
+                                                            <span class="text-danger">*</span>
+                                                        {% endif %}
                                                     </label>
-                                                </div>
 
-                                            {% else %}
-                                                <label for="{{ field.id_for_label }}"
-                                                       class="form-label fw-bold text-dark mb-1">
-                                                    {{ field.label }}
-                                                    {% if field.field.required %}
-                                                        <span class="text-danger">*</span>
+                                                    {{ field }}
+
+                                                    {% if field.help_text and field.name != 'is_active' %}
+                                                        <div class="form-text small text-muted mt-1">{{ field.help_text }}</div>
                                                     {% endif %}
-                                                </label>
-
-                                                {{ field }}
-
-                                                {% if field.help_text and field.name != 'is_active' %}
-                                                    <div class="form-text small text-muted mt-1">{{ field.help_text }}</div>
                                                 {% endif %}
-                                            {% endif %}
 
-                                            {% if field.errors %}
-                                                <div class="text-danger small mt-1 fw-medium">
-                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ field.errors|striptags }}
-                                                </div>
-                                            {% endif %}
+                                                {% if field.errors %}
+                                                    <div class="text-danger small mt-1 fw-medium">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ field.errors|striptags }}
+                                                    </div>
+                                                {% endif %}
 
-                                        </div>
+                                            </div>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
 
-                                <div class="col-md-5 d-flex justify-content-center justify-content-md-end mt-4 mt-md-0">
-                                {% if edited_user.user_pic %}
-                                    <div class="card border-dark rounded-2 shadow-none overflow-hidden d-flex align-items-center justify-content-center"
-                                         style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
+                                <div class="col-md-5 d-flex flex-column align-items-center align-items-md-end mt-4 mt-md-0 gap-4">
 
-                                        <img src="{{ edited_user.user_pic.url }}"
-                                             alt="{{ edited_user.first_name }}'s Profile Picture"
-                                             style="width: 100%; height: 100%; object-fit: cover;">
+                                    {% if edited_user.user_pic %}
+                                        <div class="card border-dark rounded-2 shadow-none overflow-hidden d-flex align-items-center justify-content-center"
+                                             style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
+
+                                            <img src="{{ edited_user.user_pic.url }}"
+                                                 alt="{{ edited_user.first_name }}'s Profile Picture"
+                                                 style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+
+                                    {% else %}
+                                        <div class="card p-3 border-dark rounded-2 shadow-none d-flex flex-column align-items-center justify-content-center text-muted text-center"
+                                             style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
+                                            <i class="bi bi-image display-1 mb-2"></i>
+                                            <span class="small fw-medium">No Photo</span>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="w-100 text-start" style="max-width: 280px;">
+                                        <h3 class="fw-bold text-dark mb-3 h5">Arrangements</h3>
+
+                                        <div class="card border-dark rounded-2 shadow-none p-3">
+
+                                            <div class="form-check form-switch mb-3">
+                                                {{ form.rest_breaks }}
+                                                <label class="form-check-label fw-bold ms-2" for="{{ form.rest_breaks.id_for_label }}" style="cursor: pointer;">
+                                                    Requires Rest Breaks
+                                                </label>
+                                            </div>
+
+                                            <hr class="text-muted opacity-25"> <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" id="frontend-extra-time-toggle"
+                                                       {% if form.extra_time_percentage.value %}checked{% endif %}>
+
+                                                <label class="form-check-label fw-bold ms-2" for="frontend-extra-time-toggle" style="cursor: pointer;">
+                                                    Requires Extra Time
+                                                </label>
+                                            </div>
+
+                                            <div id="extra-time-container" class="mb-3 {% if not form.extra_time_percentage.value %}d-none{% endif %}">
+                                                <label for="{{ form.extra_time_percentage.id_for_label }}" class="form-label fw-medium text-dark mb-1 small">
+                                                    Extra Time (%)
+                                                </label>
+                                                <div class="input-group input-group-sm">
+                                                    {{ form.extra_time_percentage }}
+                                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                                                </div>
+                                            </div> <hr class="text-muted opacity-25">
+
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" id="frontend-special-equipment-toggle"
+                                                       {% if form.special_equipment.value %}checked{% endif %}>
+
+                                                <label class="form-check-label fw-bold ms-2" for="frontend-special-equipment-toggle" style="cursor: pointer;">
+                                                    Requires Special Equipment
+                                                </label>
+                                            </div>
+
+                                            <div id="special-equipment-container" class="{% if not form.special_equipment.value %}d-none{% endif %}">
+                                                <label for="{{ form.special_equipment.id_for_label }}" class="form-label fw-medium text-dark mb-1 small">
+                                                    Equipment Details
+                                                </label>
+                                                <div class="input-group input-group-sm">
+                                                    {{ form.special_equipment }}
+                                                </div>
+
+                                                {% if form.special_equipment.errors %}
+                                                    <div class="text-danger small mt-1 fw-medium">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ form.special_equipment.errors|striptags }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
                                     </div>
-
-                                {% else %}
-                                    <div class="card p-3 border-dark rounded-2 shadow-none d-flex flex-column align-items-center justify-content-center text-muted text-center"
-                                         style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
-                                        <i class="bi bi-image display-1 mb-2"></i>
-                                        <span class="small fw-medium">No Photo</span>
-                                    </div>
-
-                                {% endif %}
                                 </div>
                             </div>
                         </form>
@@ -165,4 +224,40 @@
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const toggleTime = document.getElementById("frontend-extra-time-toggle");
+        const containerTime = document.getElementById("extra-time-container");
+        const percentageInput = document.getElementById("{{ form.extra_time_percentage.id_for_label }}");
+
+        const toggleEquip = document.getElementById("frontend-special-equipment-toggle");
+        const containerEquip = document.getElementById("special-equipment-container");
+        const equipmentInput = document.getElementById(("{{ form.special_equipment.id_for_label }}"));
+
+
+        // Listen for the user clicking the switch
+        toggleTime.addEventListener("change", function() {
+            if (this.checked) {
+                // Show the input
+                containerTime.classList.remove("d-none");
+            } else {
+                // Hide the input
+                containerTime.classList.add("d-none");
+                percentageInput.value = "";
+            }
+        });
+
+        toggleEquip.addEventListener("change",function (){
+            if (this.checked){
+                containerEquip.classList.remove("d-none");
+            } else{
+                containerEquip.classList.add("d-none");
+                equipmentInput.value = "";
+            }
+        });
+
+    });
+    </script>
 {% endblock %}
