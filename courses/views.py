@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, ListView, UpdateView
 
 from courses.forms import CourseCreationForm
 from courses.models import Course
@@ -26,16 +26,16 @@ class CoursesView(LoginRequiredMixin, ListView):
 class CourseCreateView(LoginRequiredMixin,UserPassesTestMixin, CreateView):
     model = Course
     form_class = CourseCreationForm
-    template_name = 'manage/create_course.html'
-    success_url = reverse_lazy('profile')
+    template_name = 'manage/create_update_course.html'
+    success_url = reverse_lazy('admin_course_list')
 
     def handle_no_permission(self):
         return redirect('/users/login')
 
-    # Only let them see this page if they are logged in AND are a teacher/admin
+    # Only let them see this page if they are logged in AND are a admin
     def test_func(self):
         user = self.request.user
-        return user.is_authenticated and (user.is_teacher or user.is_admin)
+        return user.is_authenticated and user.is_admin
 
 
 @login_required(login_url='/users/login')
@@ -95,3 +95,12 @@ def search_courses(request):
         )
     return render(request, 'partials/course_record_partial.html',{'courses': courses})
 
+
+class CourseUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Course
+    form_class = CourseCreationForm
+    template_name = 'manage/create_update_course.html'  # Point this to your edit template
+    success_url = reverse_lazy('admin_course_list')  # Where to go after saving
+
+    def test_func(self):
+        return self.request.user.role == UserRole.ADMIN

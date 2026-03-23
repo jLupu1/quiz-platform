@@ -19,7 +19,6 @@ class CourseCreationForm(forms.ModelForm):
             'students': forms.SelectMultiple(attrs={'class': 'form-select'}),
         }
 
-    # 1. Create two UI fields that ONLY exist on this form, not in the database
     teachers = forms.ModelMultipleChoiceField(
         queryset=User.objects.filter(role=UserRole.TEACHER),
         widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
@@ -41,13 +40,11 @@ class CourseCreationForm(forms.ModelForm):
         self.fields['name'].widget.attrs['class'] = 'form-control'
         self.fields['code'].widget.attrs['class'] = 'form-control'
 
-        # Optional pro-tip: If you ever reuse this form to EDIT a course later,
-        # this will pre-fill the dropdowns with the currently enrolled people!
+
         if self.instance and self.instance.pk:
             self.fields['teachers'].initial = self.instance.enrollment.filter(role=UserRole.TEACHER)
             self.fields['students'].initial = self.instance.enrollment.filter(role=UserRole.STUDENT)
 
-    # 3. MASH THEM TOGETHER ON SAVE
     def save(self, commit=True):
         # Save the basic text fields (name, code) first to get a database ID
         course = super().save(commit=False)

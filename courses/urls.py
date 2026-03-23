@@ -11,4 +11,6 @@ urlpatterns = [
     path('manage/', views.admin_course_list, name='admin_course_list'),
     path('manage/search-course/', views.search_courses, name='search_course'),
 
+    path('manage/<int:pk>',views.CourseUpdateView.as_view(),name='course_update'),
+
 ]
