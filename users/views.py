@@ -1,6 +1,4 @@
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetDoneView, PasswordChangeView, \
     PasswordResetConfirmView, PasswordResetCompleteView
@@ -116,8 +114,6 @@ class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return redirect('/')
 
     def post(self, request, *args, **kwargs):
-        print("🚨 --- INCOMING DATA CHECK --- 🚨")
-        print("FILES ATTACHED:", request.FILES)
         return super().post(request, *args, **kwargs)
 
 class CustomPasswordResetView(PasswordResetView):
