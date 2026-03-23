@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Edit User {% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'users/users.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-9">
+
+                <div class="card border-0 shadow-lg rounded-2 overflow-hidden mb-5">
+
+                    <div class="card-header bg-primary text-white p-4 text-center border-0">
+                        <h1 class="display-5 fw-bold mb-0">Edit User</h1>
+                        <p class="text-white-50 mb-0 mt-1">Modify account details and manage enrollments</p>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5 bg-white">
+                        <form id="update-user-form" method="POST" novalidate>
+                            {% csrf_token %}
+
+                            <div class="row mb-5 align-items-start">
+                                <div class="col-md-7 text-start pe-md-5">
+                                    {% for field in form %}
+
+                                        {% if field.name != 'extra_time_percentage' and field.name != 'rest_breaks' and field.name != 'special_equipment' %}
+                                            <div class="mb-4">
+
+                                                {% if field.widget.input_type == 'checkbox' or field.name == 'is_active' %}
+                                                    <div class="form-check text-start mt-1">
+                                                        {{ field }}
+                                                        <label class="form-check-label fw-medium ms-2 fs-6 text-muted"
+                                                               for="{{ field.id_for_label }}">
+                                                            <span class="text-dark fw-bold me-1">Active</span>
+                                                            - {{ field.help_text }}
+                                                        </label>
+                                                    </div>
+
+                                                {% else %}
+                                                    <label for="{{ field.id_for_label }}"
+                                                           class="form-label fw-bold text-dark mb-1">
+                                                        {{ field.label }}
+                                                        {% if field.field.required %}
+                                                            <span class="text-danger">*</span>
+                                                        {% endif %}
+                                                    </label>
+
+                                                    {{ field }}
+
+                                                    {% if field.help_text and field.name != 'is_active' %}
+                                                        <div class="form-text small text-muted mt-1">{{ field.help_text }}</div>
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                {% if field.errors %}
+                                                    <div class="text-danger small mt-1 fw-medium">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ field.errors|striptags }}
+                                                    </div>
+                                                {% endif %}
+
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+
+                                <div class="col-md-5 d-flex flex-column align-items-center align-items-md-end mt-4 mt-md-0 gap-4">
+
+                                    {% if edited_user.user_pic %}
+                                        <div class="card border-dark rounded-2 shadow-none overflow-hidden d-flex align-items-center justify-content-center"
+                                             style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
+
+                                            <img src="{{ edited_user.user_pic.url }}"
+                                                 alt="{{ edited_user.first_name }}'s Profile Picture"
+                                                 style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+
+                                    {% else %}
+                                        <div class="card p-3 border-dark rounded-2 shadow-none d-flex flex-column align-items-center justify-content-center text-muted text-center"
+                                             style="width: 100%; max-width: 280px; aspect-ratio: 1/1;">
+                                            <i class="bi bi-image display-1 mb-2"></i>
+                                            <span class="small fw-medium">No Photo</span>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="w-100 text-start" style="max-width: 280px;">
+                                        <h3 class="fw-bold text-dark mb-3 h5">Arrangements</h3>
+
+                                        <div class="card border-dark rounded-2 shadow-none p-3">
+
+                                            <div class="form-check form-switch mb-3">
+                                                {{ form.rest_breaks }}
+                                                <label class="form-check-label fw-bold ms-2"
+                                                       for="{{ form.rest_breaks.id_for_label }}"
+                                                       style="cursor: pointer;">
+                                                    Requires Rest Breaks
+                                                </label>
+                                            </div>
+
+                                            <hr class="text-muted opacity-25">
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="frontend-extra-time-toggle"
+                                                       {% if form.extra_time_percentage.value %}checked{% endif %}>
+
+                                                <label class="form-check-label fw-bold ms-2"
+                                                       for="frontend-extra-time-toggle" style="cursor: pointer;">
+                                                    Requires Extra Time
+                                                </label>
+                                            </div>
+
+                                            <div id="extra-time-container"
+                                                 class="mb-3 {% if not form.extra_time_percentage.value %}d-none{% endif %}">
+                                                <label for="{{ form.extra_time_percentage.id_for_label }}"
+                                                       class="form-label fw-medium text-dark mb-1 small">
+                                                    Extra Time (%)
+                                                </label>
+                                                <div class="input-group input-group-sm">
+                                                    {{ form.extra_time_percentage }}
+                                                    <span class="input-group-text bg-light text-muted fw-bold">%</span>
+                                                </div>
+                                            </div>
+                                            <hr class="text-muted opacity-25">
+
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="frontend-special-equipment-toggle"
+                                                       {% if form.special_equipment.value %}checked{% endif %}>
+
+                                                <label class="form-check-label fw-bold ms-2"
+                                                       for="frontend-special-equipment-toggle" style="cursor: pointer;">
+                                                    Requires Special Equipment
+                                                </label>
+                                            </div>
+
+                                            <div id="special-equipment-container"
+                                                 class="{% if not form.special_equipment.value %}d-none{% endif %}">
+                                                <label for="{{ form.special_equipment.id_for_label }}"
+                                                       class="form-label fw-medium text-dark mb-1 small">
+                                                    Equipment Details
+                                                </label>
+                                                <div class="input-group input-group-sm">
+                                                    {{ form.special_equipment }}
+                                                </div>
+
+                                                {% if form.special_equipment.errors %}
+                                                    <div class="text-danger small mt-1 fw-medium">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ form.special_equipment.errors|striptags }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="mb-5">
+                            <h3 class="fw-bold text-dark mb-3">Enrolled Courses</h3>
+                            <div class="border border-dark rounded-2 p-0 overflow-hidden shadow-none bg-white">
+
+                                <div style="max-height: 280px; overflow-y: auto;">
+
+                                    <table class="table table-bordered table-hover align-middle mb-0">
+
+                                        <thead class="table-light border-bottom border-dark text-nowrap"
+                                               style="position: sticky; top: 0; z-index: 1;">
+                                        <tr>
+                                            <th scope="col" class="ps-4 py-3 fw-bold text-secondary text-uppercase"
+                                                style="font-size: 0.85rem;">Code
+                                            </th>
+                                            <th scope="col" class="py-3 fw-bold text-secondary text-uppercase"
+                                                style="font-size: 0.85rem;">Course Name
+                                            </th>
+                                            <th scope="col"
+                                                class="pe-4 py-3 text-center fw-bold text-secondary text-uppercase"
+                                                style="font-size: 0.85rem;">Action
+                                            </th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {% for course in enrolled_courses %}
+                                            <tr>
+                                                <th scope="row"
+                                                    class="ps-4 py-3 text-dark fw-bold fs-6">{{ course.code }}</th>
+                                                <td class="py-3 text-muted">{{ course.name }}</td>
+                                                <td class="pe-4 py-3 text-center text-nowrap">
+
+                                                    <form style="display: inline;"
+                                                          hx-post="{% url 'disenroll_user' edited_user.id course.id %}"
+                                                          hx-target="closest tr"
+                                                          hx-swap="outerHTML swap:0.5s"
+                                                          hx-confirm="Are you sure you want to remove {{ edited_user.first_name }} from {{ course.code }}?">
+
+                                                        {% csrf_token %}
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger px-3 rounded-2 fw-medium">
+                                                            <i class="bi bi-x-circle me-1"></i> Disenroll
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="3" class="text-center py-5 text-muted small">
+                                                    <i class="bi bi-journal-x display-6 d-block mb-2 text-secondary"></i>
+                                                    This user is not currently enrolled in any courses.
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted">
+
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-light border px-4 rounded-2 fw-medium">
+                                Cancel
+                            </a>
+                            <button form='update-user-form' type="submit"
+                                    class="btn btn-primary px-4 rounded-2 fw-medium">
+                                <i class="bi bi-floppy-fill me-1"></i> Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const toggleTime = document.getElementById("frontend-extra-time-toggle");
+            const containerTime = document.getElementById("extra-time-container");
+            const percentageInput = document.getElementById("{{ form.extra_time_percentage.id_for_label }}");
+
+            const toggleEquip = document.getElementById("frontend-special-equipment-toggle");
+            const containerEquip = document.getElementById("special-equipment-container");
+            const equipmentInput = document.getElementById(("{{ form.special_equipment.id_for_label }}"));
+
+
+            // Listen for the user clicking the switch
+            toggleTime.addEventListener("change", function () {
+                if (this.checked) {
+                    // Show the input
+                    containerTime.classList.remove("d-none");
+                } else {
+                    // Hide the input
+                    containerTime.classList.add("d-none");
+                    percentageInput.value = "";
+                }
+            });
+
+            toggleEquip.addEventListener("change", function () {
+                if (this.checked) {
+                    containerEquip.classList.remove("d-none");
+                } else {
+                    containerEquip.classList.add("d-none");
+                    equipmentInput.value = "";
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

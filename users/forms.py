@@ -3,6 +3,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, Pass
     PasswordChangeForm
 from django.contrib.auth import get_user_model
 
+from users.models import Arrangement
+
 
 class CustomLoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={
@@ -59,7 +61,7 @@ class CustomSignupForm(UserCreationForm):
         ]
     )
 
-    user_picture = forms.ImageField(label='Profile Picture',
+    user_pic = forms.ImageField(label='Profile Picture',
         required=False,
         widget=forms.FileInput(attrs={
             'class': 'form-control'
@@ -68,7 +70,7 @@ class CustomSignupForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'user_picture')
+        fields = ('username', 'first_name', 'last_name', 'email', 'role', 'user_pic')
 
 class CustomPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(label='Email',
@@ -96,3 +98,73 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
 
+
+class UserUpdateForm(forms.ModelForm):
+    extra_time_percentage = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=100,
+        label='Extra Time',
+    )
+
+    rest_breaks = forms.BooleanField(
+        required=False,
+        label="Requires Rest Breaks"
+    )
+
+    special_equipment = forms.CharField(
+        required=False,
+        label='Special Equipment',
+    )
+
+    class Meta:
+        model = get_user_model()
+        fields = ['first_name', 'last_name', 'email', 'username', 'role', 'is_active']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and hasattr(self.instance, 'arrangement') and self.instance.arrangement:
+            self.fields['extra_time_percentage'].initial = self.instance.arrangement.extra_time
+            self.fields['rest_breaks'].initial = self.instance.arrangement.rest_breaks
+            self.fields['special_equipment'].initial = self.instance.arrangement.special_equipment
+
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-check-input'
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs['class'] = 'form-select'
+            else:
+                field.widget.attrs['class'] = 'form-control'
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+
+        extra_time_inp = self.cleaned_data.get('extra_time_percentage')
+        rest_breaks_inp = self.cleaned_data.get('rest_breaks')
+        special_equip_inp = self.cleaned_data.get('special_equipment')
+
+
+        if commit:
+            needs_arrangement = bool(extra_time_inp or rest_breaks_inp or special_equip_inp)
+
+            if needs_arrangement:
+                if hasattr(user, 'arrangement') and user.arrangement:
+                    # Update existing
+                    user.arrangement.extra_time = extra_time_inp or 0
+                    user.arrangement.rest_breaks = rest_breaks_inp
+                    user.arrangement.special_equipment = special_equip_inp
+                    user.arrangement.save()
+                else:
+                    # Create ONE brand new arrangement with both values
+                    new_arrangement = Arrangement.objects.create(
+                        extra_time=extra_time_inp or 0,
+                        rest_breaks=rest_breaks_inp,
+                        special_equipment=special_equip_inp or ''
+                    )
+                    user.arrangement = new_arrangement
+                    user.save(update_fields=['arrangement'])
+            else:
+                if hasattr(user, 'arrangement') and user.arrangement:
+                    user.arrangement.delete()
+        return user

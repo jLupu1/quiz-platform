@@ -48,3 +48,8 @@
         padding: 15px;
         margin: auto;
     }
+
+ tr.htmx-swapping td{
+     opacity: 0;
+     transition: opacity 0.5s ease-out;
+ }

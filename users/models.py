@@ -1,3 +1,6 @@
+import os
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from enum import IntEnum
@@ -16,10 +19,18 @@ class Arrangement(models.Model):
     rest_breaks = models.IntegerField(null=True, blank=True)
     special_equipment = models.CharField(max_length=500, null=True, blank=True)
 
+def profile_pic_filename(instance, filename):
+    ext = filename.split('.')[-1]
+    identifier = instance.id if instance.id else instance.username
+
+    new_filename = f"profile_{identifier}.{ext}"
+    return os.path.join('profile_pics', new_filename)
+
+
 class User(AbstractUser):
     role = models.IntegerField(choices=UserRole.choices(), default=UserRole.STUDENT)
 
-    user_pic = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
+    user_pic = models.ImageField(upload_to=profile_pic_filename, null=True, blank=True)
 
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField('email', unique=True)

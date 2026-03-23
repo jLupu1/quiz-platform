@@ -29,8 +29,8 @@
             <div class="card h-100 shadow-sm mx-auto">
                 <div class="card-body text-center">
 
-                    {% if user.user_picture %}
-                        <img src="{{ user.user_picture.url }}" alt="Profile Picture" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                    {% if user.user_pic %}
+                        <img src="{{ user.user_pic.url }}" alt="Profile Picture" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
                     {% else %}
                         <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px; font-size: 3rem;">
                             {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
@@ -63,12 +63,22 @@
                     <h3 class="card-title h5 text-center mb-4">Enrolled Courses</h3>
 
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Introduction to Placeholder
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Advanced Placeholder
-                        </li>
+{#                        <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                            Introduction to Placeholder#}
+{#                        </li>#}
+{#                        <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                            Advanced Placeholder#}
+{#                        </li>#}
+                        {% for course in enrolled_courses %}
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge bg-primary fs-6 px-1 py-1 rounded-2"> {{ course.code }}</span>
+                                <span class="px-2">{{ course.name }}</span>
+                            </li>
+
+                            {% empty %}
+                             <h3 class="text-muted mb-3">No courses yet!</h3>
+                             <p class="lead text-muted mb-4 fs-6">You are not currently enrolled in any active courses.</p>
+                        {% endfor %}
                     </ul>
 
                 </div>
