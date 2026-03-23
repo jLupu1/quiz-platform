@@ -31,12 +31,11 @@
                         <div class="card-body p-4">
                             <div class="row g-4">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">{{ form.course.label }}</label>
-                                    {{ form.course }}
+                                    <h4 class="fw-bold fs-5">Course: {{ course.name }}</h4>
                                     <div class="text-danger small mt-1">{{ form.course.errors|striptags }}</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">{{ form.name.label }}</label>
+                                    <label class="form-label fw-bold">Quiz {{ form.name.label }}</label>
                                     {{ form.name }}
                                     <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
                                 </div>
