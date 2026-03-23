@@ -24,10 +24,10 @@
 
                             <div class="row mb-5 align-items-start">
                                 <div class="col-md-7 text-start pe-md-5">
-                                        {% for field in form %}
+                                    {% for field in form %}
 
-                                            {% if field.name != 'extra_time_percentage' and field.name != 'rest_breaks' and field.name != 'special_equipment'%}
-                                                <div class="mb-4">
+                                        {% if field.name != 'extra_time_percentage' and field.name != 'rest_breaks' and field.name != 'special_equipment' %}
+                                            <div class="mb-4">
 
                                                 {% if field.widget.input_type == 'checkbox' or field.name == 'is_active' %}
                                                     <div class="form-check text-start mt-1">
@@ -92,41 +92,53 @@
 
                                             <div class="form-check form-switch mb-3">
                                                 {{ form.rest_breaks }}
-                                                <label class="form-check-label fw-bold ms-2" for="{{ form.rest_breaks.id_for_label }}" style="cursor: pointer;">
+                                                <label class="form-check-label fw-bold ms-2"
+                                                       for="{{ form.rest_breaks.id_for_label }}"
+                                                       style="cursor: pointer;">
                                                     Requires Rest Breaks
                                                 </label>
                                             </div>
 
-                                            <hr class="text-muted opacity-25"> <div class="form-check form-switch mb-3">
-                                                <input class="form-check-input" type="checkbox" id="frontend-extra-time-toggle"
+                                            <hr class="text-muted opacity-25">
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="frontend-extra-time-toggle"
                                                        {% if form.extra_time_percentage.value %}checked{% endif %}>
 
-                                                <label class="form-check-label fw-bold ms-2" for="frontend-extra-time-toggle" style="cursor: pointer;">
+                                                <label class="form-check-label fw-bold ms-2"
+                                                       for="frontend-extra-time-toggle" style="cursor: pointer;">
                                                     Requires Extra Time
                                                 </label>
                                             </div>
 
-                                            <div id="extra-time-container" class="mb-3 {% if not form.extra_time_percentage.value %}d-none{% endif %}">
-                                                <label for="{{ form.extra_time_percentage.id_for_label }}" class="form-label fw-medium text-dark mb-1 small">
+                                            <div id="extra-time-container"
+                                                 class="mb-3 {% if not form.extra_time_percentage.value %}d-none{% endif %}">
+                                                <label for="{{ form.extra_time_percentage.id_for_label }}"
+                                                       class="form-label fw-medium text-dark mb-1 small">
                                                     Extra Time (%)
                                                 </label>
                                                 <div class="input-group input-group-sm">
                                                     {{ form.extra_time_percentage }}
                                                     <span class="input-group-text bg-light text-muted fw-bold">%</span>
                                                 </div>
-                                            </div> <hr class="text-muted opacity-25">
+                                            </div>
+                                            <hr class="text-muted opacity-25">
 
                                             <div class="form-check form-switch mb-3">
-                                                <input class="form-check-input" type="checkbox" id="frontend-special-equipment-toggle"
+                                                <input class="form-check-input" type="checkbox"
+                                                       id="frontend-special-equipment-toggle"
                                                        {% if form.special_equipment.value %}checked{% endif %}>
 
-                                                <label class="form-check-label fw-bold ms-2" for="frontend-special-equipment-toggle" style="cursor: pointer;">
+                                                <label class="form-check-label fw-bold ms-2"
+                                                       for="frontend-special-equipment-toggle" style="cursor: pointer;">
                                                     Requires Special Equipment
                                                 </label>
                                             </div>
 
-                                            <div id="special-equipment-container" class="{% if not form.special_equipment.value %}d-none{% endif %}">
-                                                <label for="{{ form.special_equipment.id_for_label }}" class="form-label fw-medium text-dark mb-1 small">
+                                            <div id="special-equipment-container"
+                                                 class="{% if not form.special_equipment.value %}d-none{% endif %}">
+                                                <label for="{{ form.special_equipment.id_for_label }}"
+                                                       class="form-label fw-medium text-dark mb-1 small">
                                                     Equipment Details
                                                 </label>
                                                 <div class="input-group input-group-sm">
@@ -226,38 +238,38 @@
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
 
-        const toggleTime = document.getElementById("frontend-extra-time-toggle");
-        const containerTime = document.getElementById("extra-time-container");
-        const percentageInput = document.getElementById("{{ form.extra_time_percentage.id_for_label }}");
+            const toggleTime = document.getElementById("frontend-extra-time-toggle");
+            const containerTime = document.getElementById("extra-time-container");
+            const percentageInput = document.getElementById("{{ form.extra_time_percentage.id_for_label }}");
 
-        const toggleEquip = document.getElementById("frontend-special-equipment-toggle");
-        const containerEquip = document.getElementById("special-equipment-container");
-        const equipmentInput = document.getElementById(("{{ form.special_equipment.id_for_label }}"));
+            const toggleEquip = document.getElementById("frontend-special-equipment-toggle");
+            const containerEquip = document.getElementById("special-equipment-container");
+            const equipmentInput = document.getElementById(("{{ form.special_equipment.id_for_label }}"));
 
 
-        // Listen for the user clicking the switch
-        toggleTime.addEventListener("change", function() {
-            if (this.checked) {
-                // Show the input
-                containerTime.classList.remove("d-none");
-            } else {
-                // Hide the input
-                containerTime.classList.add("d-none");
-                percentageInput.value = "";
-            }
+            // Listen for the user clicking the switch
+            toggleTime.addEventListener("change", function () {
+                if (this.checked) {
+                    // Show the input
+                    containerTime.classList.remove("d-none");
+                } else {
+                    // Hide the input
+                    containerTime.classList.add("d-none");
+                    percentageInput.value = "";
+                }
+            });
+
+            toggleEquip.addEventListener("change", function () {
+                if (this.checked) {
+                    containerEquip.classList.remove("d-none");
+                } else {
+                    containerEquip.classList.add("d-none");
+                    equipmentInput.value = "";
+                }
+            });
+
         });
-
-        toggleEquip.addEventListener("change",function (){
-            if (this.checked){
-                containerEquip.classList.remove("d-none");
-            } else{
-                containerEquip.classList.add("d-none");
-                equipmentInput.value = "";
-            }
-        });
-
-    });
     </script>
 {% endblock %}
