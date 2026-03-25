@@ -7,6 +7,7 @@ from django.views.generic import CreateView, ListView, UpdateView
 
 from courses.forms import CourseCreationForm
 from courses.models import Course
+from quizzes.models import Quiz
 from users.models import UserRole
 from users.views import error_403
 
@@ -51,6 +52,7 @@ def course_detail(request, pk):
     context = {
         'course': course,
         'default_students': course.enrollment.filter(role=UserRole.STUDENT,is_active=True),
+        'quizzes': course.quiz_set.all(),
     }
     # context will need course detail and quizzes
     if request.user.is_teacher or request.user.is_admin:

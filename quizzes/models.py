@@ -10,6 +10,7 @@ from utils.question_status import QuestionStatus
 
 class Quiz (models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
     name = models.CharField(max_length=100)
     introduction = models.TextField(null=True, blank=True)
     # TODO password
