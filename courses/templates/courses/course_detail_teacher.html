@@ -11,6 +11,12 @@
 <div class="container-fluid px-4 px-lg-5 mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-2">
+    <script>console.log({{ user.role }})</script>
+        {% if user.role == 2 %}
+            <a href="{% url 'admin_course_list' %}" class="btn btn-outline-secondary rounded-2">Back</a>
+        {% else %}
+            <a href="{% url 'courses' %}" class="btn btn-outline-secondary rounded-2">Back</a>
+        {% endif %}
         <h1 class="display-6 fw-bold mb-0 text-dark">{{ course.name|default:"Introduction to Java" }}</h1>
         <span class="badge bg-primary fs-5 px-3 py-2 rounded-2">{{ course.code|default:"COM1003" }}</span>
     </div>

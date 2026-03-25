@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views.generic import CreateView
 
 from courses.models import Course
@@ -12,6 +13,7 @@ class CreateQuiz(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     model = Quiz
     template_name = 'create_quiz.html'
     form_class = CreateQuizForm
+    success_url = 'create_questions'
 
     def test_func(self):
         return self.request.user.is_admin or self.request.user.is_teacher
@@ -22,4 +24,10 @@ class CreateQuiz(LoginRequiredMixin,UserPassesTestMixin,CreateView):
 
         context['course'] = course
         return context
-        
+
+    def form_valid(self, form):
+        form.instance.course_id = self.kwargs.get('course_id')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('create_question', kwargs={'quiz_id': self.object.id})

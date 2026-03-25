@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, UpdateView, DetailView, TemplateView
+from django.views.generic import CreateView, UpdateView, TemplateView
 
 from courses.models import Course
 from users.forms import *
