@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
@@ -33,8 +33,9 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     def get_success_url(self):
         return reverse('create-questions', kwargs={'quiz_id': self.kwargs.get('quiz_id')})
 
-
+# TODO link backend to frontend. Save the question and redicret to add a new one. create a finish button when teacher is happy
 @login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.role == u.is_staff_member, login_url='/users/login/')
 def get_question_partial(request):
     question_type = request.GET.get('question_type')
     print(question_type)
@@ -51,8 +52,11 @@ def get_question_partial(request):
     else:
         return HttpResponse("")
 @login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.role == u.is_staff_member, login_url='/users/login/')
 def add_mcq_options(request):
     return render(request, "partials/mcq_single_option.html")
 
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.role == u.is_staff_member, login_url='/users/login/')
 def get_either_or_partial(request):
     return render(request, "partials/either_or_partial.html")
