@@ -1,4 +1,6 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views.generic import CreateView
@@ -30,3 +32,27 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
 
     def get_success_url(self):
         return reverse('create-questions', kwargs={'quiz_id': self.kwargs.get('quiz_id')})
+
+
+@login_required(login_url='/users/login/')
+def get_question_partial(request):
+    question_type = request.GET.get('question_type')
+    print(question_type)
+    if question_type == 'mcq':
+        return render(request,'partials/mcq_partial.html')
+    elif question_type == 'either_or':
+        return render(request,'partials/either_or_partial.html')
+    elif question_type == 'short_answer':
+        return render(request,"partials/short_answer_partial.html")
+    elif question_type == 'essay':
+        return render(request,'partials/essay_partial.html')
+    elif question_type == 'text_filler':
+        return render(request,'partials/text_filler_partial.html')
+    else:
+        return HttpResponse("")
+@login_required(login_url='/users/login/')
+def add_mcq_options(request):
+    return render(request, "partials/mcq_single_option.html")
+
+def get_either_or_partial(request):
+    return render(request, "partials/either_or_partial.html")

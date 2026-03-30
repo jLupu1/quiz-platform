@@ -1,0 +1,27 @@
+<div id="section-mcq" class="card border-0 shadow-sm rounded-4 mb-4 question-section">
+    <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+        <h4 class="h5 mb-0 fw-bold"><i class="bi bi-list-check me-2"></i> MCQ Settings</h4>
+        <span class="badge bg-light text-dark">mcq_option</span>
+    </div>
+    <div class="card-body p-4 bg-light">
+
+        <div class="form-check form-switch mb-4 pb-3 border-bottom border-secondary">
+            <input class="form-check-input border-secondary" type="checkbox" name="mcq_isMultipleAnswer">
+            <label class="form-check-label fw-bold">Allow Multiple Answers?</label>
+        </div>
+
+        <div id="mcq-option-container">
+            {% include 'partials/mcq_single_option.html' %}
+        </div>
+
+
+
+        <button type="button" id="add-mcq-btn" class="btn btn-sm btn-outline-dark fw-medium"
+            hx-get="{% url 'add_mcq_options' %}"
+            hx-target="#mcq-option-container"
+            hx-swap="beforeend">
+            <i class="bi bi-plus-lg me-1"></i> Add Another Option
+        </button>
+    </div>
+{#</div>#}
+
