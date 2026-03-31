@@ -1,0 +1,22 @@
+{% for added_question in object_list %}
+<tr>
+    <td class="py-3 fw-bold "> {{ added_question.order_sequence}}</td>
+    <td class="py-3"> {{ added_question.question.question_text }}</td>
+    <td class="py-3"> {{ added_question.question.get_question_type_display }}</td>
+
+    <td class="pe-4 py-3 text-center">
+        <a href="#"
+           class="btn btn-sm btn-outline-secondary px-3 rounded-2 fw-medium">
+            <i class="bi bi-gear me-1"></i> Edit
+        </a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4" class="text-center py-5 text-muted">
+        <i class="bi bi-people display-4 d-block mb-3"></i>
+        <h5>No questions found</h5>
+        <p class="mb-0">There are currently no questions to display.</p>
+    </td>
+</tr>
+{% endfor %}

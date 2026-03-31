@@ -1,22 +1,17 @@
 from django.db import models
 from enum import IntEnum
 
-class QuestionType(IntEnum):
-    MCQ = 0
-    EITHER_OR = 1
-    SHORT_ANSWER = 2
-    ESSAY_QUESTION = 3
-    TEXT_FILLER = 4
-
-    @classmethod
-    def choices(cls):
-        return [(cls.value,cls.name) for cls in QuestionType]
-
+class QuestionType(models.IntegerChoices):
+    MCQ = 0, 'Multiple Choice (MCQ)'
+    EITHER_OR = 1, 'Either/Or (True/False)'
+    SHORT_ANSWER = 2, 'Short Answer'
+    ESSAY_QUESTION = 3, 'Essay'
+    TEXT_FILLER = 4, 'Text Filler (Fill in blanks)'
 
 # Create your models here.
 class Question (models.Model):
-    question_text = models.CharField(null=True, blank=True)
-    question_type = models.IntegerField(choices=QuestionType.choices(), null=True, blank=True)
+    question_text = models.CharField(null=False, blank=False, default="")
+    question_type = models.IntegerField(choices=QuestionType.choices)
     general_feedback = models.CharField(null=True, blank=True) #ovverrideable through quizQuestion
 
 class McqOption(models.Model):

@@ -40,7 +40,7 @@
                                     <i class="bi bi-clock me-1"></i> {{ quiz.close_date }}
                                 </p>
                             </div>
-                            <a href="#" class="btn btn-sm btn-outline-success px-4 rounded-1">View</a>
+                            <a href="{% url 'edit-quiz' quiz.id %}" class="btn btn-sm btn-outline-success px-4 rounded-1">View</a>
                         </div>
                     </div>
                         {% empty %}
