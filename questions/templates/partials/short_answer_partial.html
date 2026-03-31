@@ -8,21 +8,26 @@
                 <label class="form-label fw-bold">Acceptable Answer</label>
                 <input type="text" class="form-control" name="sa_answer" placeholder="e.g., Paris">
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label fw-bold">Max Word Count</label>
                 <input type="number" class="form-control" name="sa_max_word">
             </div>
-            <div class="col-md-4">
-                <label class="form-label fw-bold">Max Mark</label>
-                <input type="number" step="0.1" class="form-control" name="sa_max_mark">
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label fw-bold">Use Case (Sensitivity)</label>
                 <select class="form-select" name="sa_use_case">
                     <option value="0">Case Insensitive (paris = Paris)</option>
                     <option value="1">Case Sensitive (Paris != paris)</option>
                 </select>
             </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Max Mark</label>
+                <input type="number" step="0.1" class="form-control" name="sa_max_mark">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold small">Negative Mark</label>
+                <input type="number" step="0.1" class="form-control" name="sa_negative_mark">
+            </div>
+
         </div>
     </div>
 </div>

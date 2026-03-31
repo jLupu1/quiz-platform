@@ -17,7 +17,7 @@ class QuestionType(IntEnum):
 class Question (models.Model):
     question_text = models.CharField(null=True, blank=True)
     question_type = models.IntegerField(choices=QuestionType.choices(), null=True, blank=True)
-    general_feedback = models.CharField(null=True, blank=True)
+    general_feedback = models.CharField(null=True, blank=True) #ovverrideable through quizQuestion
 
 class McqOption(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
@@ -27,6 +27,7 @@ class McqOption(models.Model):
     option_feedback = models.CharField(null=True, blank=True)
     maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    isMultipleAnswers = models.BooleanField(default=False)
 
 class EitherOrOption(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
@@ -34,6 +35,8 @@ class EitherOrOption(models.Model):
     is_correct = models.BooleanField(default=False)
     order_sequence = models.IntegerField(default=0)
     specific_feedback = models.CharField(null=True, blank=True)
+    maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
 
 class EssayQuestionOption(models.Model):
     question = models.OneToOneField('Question', on_delete=models.CASCADE)
@@ -41,6 +44,7 @@ class EssayQuestionOption(models.Model):
     maximum_word_length = models.IntegerField()
     maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     model_answer = models.CharField(null=True, blank=True)
+    negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
 
 class ShortAnswerQuestionOption(models.Model):
     question = models.OneToOneField('Question', on_delete=models.CASCADE)
@@ -48,10 +52,14 @@ class ShortAnswerQuestionOption(models.Model):
     use_case = models.BooleanField(default=False)
     answer_text = models.CharField(null=False, blank=False)
     maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
 
 class TextFiller(models.Model):
     question = models.OneToOneField('Question', on_delete=models.CASCADE)
     text = models.TextField(null=True, blank=True)
+    maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    # word_list
 
 
 

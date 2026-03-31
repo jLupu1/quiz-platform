@@ -16,7 +16,7 @@
     </div>
 
     <div class="row g-4 justify-content-center">
-
+{{ form.error }}
         <div class="col-lg-4 col-xl-3 mb-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-light">
                 <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
@@ -27,42 +27,29 @@
 
                 <div class="card-body p-3 sidebar-scroll" style="max-height: 700px; overflow-y: auto;">
 {#TODO HTMX list of questions added #}
-                    <div class="card border-light shadow-none mb-2 rounded-3 question-card-hover cursor-pointer">
-                        <div class="card-body p-3 d-flex justify-content-between align-items-center gap-2">
-                            <div class="text-truncate">
-                                <span class="badge bg-dark mb-1" style="font-size: 0.65rem;">MCQ</span>
-                                <p class="mb-0 small fw-medium text-truncate" title="This is question text 1">This is question text 1</p>
+                    {% for added_question in added_questions %}
+                        <div class="card border-light shadow-none mb-2 rounded-3 question-card-hover cursor-pointer">
+                            <div class="card-body p-3 d-flex justify-content-between align-items-center gap-2">
+                                <div class="text-truncate">
+                                    {% if added_question.question.question_type == 0 %}
+                                        <span class="badge bg-dark mb-1" style="font-size: 0.65rem;">MCQ</span>
+                                    {% elif added_question.question.question_type == 1 %}
+                                        <span class="badge bg-warning mb-1" style="font-size: 0.65rem;">Either/Or</span>
+                                    {% elif added_question.question.question_type == 2 %}
+                                        <span class="badge bg-info mb-1" style="font-size: 0.65rem;">Short Answer</span>
+                                    {% elif added_question.question.question_type == 3 %}
+                                        <span class="badge bg-success mb-1" style="font-size: 0.65rem;">Essay</span>
+                                    {% elif added_question.question.question_type == 4 %}
+                                        <span class="badge bg-secondary mb-1" style="font-size: 0.65rem;">Text Filler</span>
+                                    {% endif %}
+                                    <p class="mb-0 small fw-medium text-truncate" title="{{ added_question.question.question_text }}">{{ added_question.question.question_text }}</p>
+                                </div>
+                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
                             </div>
-                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
                         </div>
-                    </div>
-
-                    <div class="card border-light shadow-none mb-2 rounded-3 question-card-hover cursor-pointer">
-                        <div class="card-body p-3 d-flex justify-content-between align-items-center gap-2">
-                            <div class="text-truncate">
-                                <span class="badge bg-info mb-1" style="font-size: 0.65rem;">Short Answer</span>
-                                <p class="mb-0 small fw-medium text-truncate" title="What is the capital of France?">What is the capital of France?</p>
-                            </div>
-                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="card border-light shadow-none mb-2 rounded-3 question-card-hover cursor-pointer">
-                        <div class="card-body p-3 d-flex justify-content-between align-items-center gap-2">
-                            <div class="text-truncate">
-                                <span class="badge bg-success mb-1" style="font-size: 0.65rem;">Essay</span>
-                                <p class="mb-0 small fw-medium text-truncate" title="Explain the impact of the Industrial Revolution">Explain the impact of the Industrial Revolution</p>
-                            </div>
-                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-                        </div>
-                    </div>
-
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -83,19 +70,20 @@
                                         hx-get="{% url 'get_question_partial' %}"
                                         hx-target="#dynamic-sections-container"
                                         hx-swap="innerHTML">
+{#                                    Value from question_model#}
                                     <option value="" selected disabled>-- Select a question type to begin --</option>
-                                    <option value="mcq">Multiple Choice (MCQ)</option>
-                                    <option value="short_answer">Short Answer</option>
-                                    <option value="essay">Essay</option>
-                                    <option value="either_or">Either/Or (True/False)</option>
-                                    <option value="text_filler">Text Filler (Fill in blanks)</option>
+                                    <option value="0">Multiple Choice (MCQ)</option>
+                                    <option value="1">Either/Or (True/False)</option>
+                                    <option value="2">Short Answer</option>
+                                    <option value="3">Essay</option>
+                                    <option value="4">Text Filler (Fill in blanks)</option>
                                 </select>
                             </div>
 
                             <div class="col-12">
                                 <label class="form-label fw-bold">Question Text</label>
                                 <textarea class="form-control" name="question_text" rows="3"
-                                          placeholder="Enter the main question here..."></textarea>
+                                          placeholder="Enter the main question here..." required></textarea>
                             </div>
                             <div class="col-12">
                                 <label class="form-label fw-bold">General Feedback (Optional)</label>
