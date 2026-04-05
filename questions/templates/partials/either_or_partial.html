@@ -12,14 +12,9 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-check form-switch mb-2">
-{#                        <input type="hidden" name="eo_is_correct_list" value="False">#}
-{#                        <input class="form-check-input" type="checkbox"#}
-{#                               onchange="this.previousElementSibling.value = this.checked ? 'True' : 'False'"#}
-{#                        value="{{ option.is_correct|yesno:'True,False' }}">#}
-{#                        <label class="form-check-label fw-bold small">Correct?</label>#}
+                        <label class="form-check-label fw-bold small">Correct?</label>
                         <input type="hidden" name="eo_is_correct_list" value="{{ option.is_correct|yesno:'True,False' }}">
-                    <input class="form-check-input" type="checkbox" onchange="this.previousElementSibling.value = this.checked ? 'True' : 'False'" {% if option.is_correct %}checked{% endif %}>
-                    <label class="form-check-label fw-bold small">Correct?</label>
+                        <input class="form-check-input" type="checkbox" onchange="this.previousElementSibling.value = this.checked ? 'True' : 'False'" {% if option.is_correct %}checked{% endif %}>
                     </div>
                 </div>
                 <div class="col-12 mt-3">

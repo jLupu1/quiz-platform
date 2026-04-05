@@ -50,81 +50,20 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
             # Due to how question types are set up using enums and frontend limitations
             # MCQ
             if question_type == '0':
-                allow_multiple = self.request.POST.get('mcq_isMultipleAnswer') == 'on'
+                create_mcq_question(self.request, question)
 
-                options_texts = self.request.POST.getlist('mcq_option_text')
-                print(options_texts)
-                max_marks = self.request.POST.getlist('mcq_max_mark')
-                negative_marks = self.request.POST.getlist('mcq_negative_mark')
-                option_feedbacks = self.request.POST.getlist('mcq_option_feedback')
-                is_correct_list = self.request.POST.getlist('mcq_is_correct_list')
-
-                for index, text in enumerate(options_texts):
-                    print(options_texts[index],max_marks[index],negative_marks[index],option_feedbacks,is_correct_list[index])
-                    McqOption.objects.create(
-                        question=question,
-                        option_text=text,
-                        maximum_mark=max_marks[index] if max_marks[index] else 0,
-                        negative_mark=negative_marks[index] if negative_marks[index] else 0,
-                        option_feedback=option_feedbacks[index],
-                        order_sequence=index,
-                        isMultipleAnswers=allow_multiple,
-                        is_correct=(is_correct_list[index] == 'True')
-                    )
             # Either/Or
             elif question_type == '1':
                 create_eo_option(self.request,question)
-                # label_texts = self.request.POST.getlist('eo_label_text')
-                # specific_feedbacks = self.request.POST.getlist('eo_specific_feedback')
-                # max_marks = self.request.POST.getlist('eo_max_mark')
-                # negative_marks = self.request.POST.getlist('eo_negative_mark')
-                # is_correct_list = self.request.POST.getlist('eo_is_correct_list')
-                #
-                # print(label_texts,specific_feedbacks,max_marks,negative_marks,is_correct_list)
-                #
-                # for index, text in enumerate(label_texts):
-                #      EitherOrOption.objects.create(
-                #         question=question,
-                #         label=text,
-                #         order_sequence=index,
-                #         is_correct=(is_correct_list[index] == 'True'),
-                #         specific_feedback=specific_feedbacks[index],
-                #         maximum_mark=max_marks[index] if max_marks[index] else 0,
-                #         negative_mark=negative_marks[index] if negative_marks[index] else 0
-                #     )
 
             # Short Answer
             elif question_type == '2':
-                max_words = self.request.POST.get('sa_max_word')
-                use_case = self.request.POST.get('sa_use_case')
-                answer = self.request.POST.get('sa_answer')
-                max_marks = self.request.POST.get('sa_max_mark')
-                negative_marks = self.request.POST.get('sa_negative_mark')
+                create_sa_question(self.request, question)
 
-                ShortAnswerQuestionOption.objects.create(
-                    question=question,
-                    maximum_word_length=max_words if max_words else None,
-                    use_case=(use_case == '1'),
-                    answer_text=answer,
-                    maximum_mark=max_marks if max_marks else 0,
-                    negative_mark=negative_marks if negative_marks else 0,
-                )
             # Essay
             elif question_type == '3':
-                min_words = self.request.POST.get('essay_minword')
-                max_words = self.request.POST.get('essay_maxword')
-                max_marks = self.request.POST.get('essay_max_mark')
-                negative_marks = self.request.POST.get('essay_negative_mark')
-                model_answer = self.request.POST.get('essay_model_answer')
+                create_essay_question(self.request, question)
 
-                EssayQuestionOption.objects.create(
-                    question=question,
-                    minimum_word_length=min_words if min_words else None,
-                    maximum_word_length=max_words if max_words else None,
-                    maximum_mark=max_marks if max_marks else 0,
-                    negative_mark=negative_marks if negative_marks else 0,
-                    model_answer=model_answer,
-                )
             # Text Filler
             elif question_type == '4':
                 text = self.request.POST.get('tf_text')
@@ -146,7 +85,7 @@ def get_question_partial(request):
     if question_type == '0':
         return render(request,'partials/mcq_partial.html')
     elif question_type == '1':
-        return render(request,'partials/either_or_partial.html',{'n':'12'}) #1,2 to create options
+        return render(request,'partials/either_or_partial.html')
     elif question_type == '2':
         return render(request,"partials/short_answer_partial.html")
     elif question_type == '3':
@@ -241,49 +180,11 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
             # --- MULTIPLE CHOICE ---
             if q_type == 0:
-                allow_multiple = self.request.POST.get('mcq_isMultipleAnswer') == 'on'
-
-                texts = self.request.POST.getlist('mcq_option_text')
-                max_marks = self.request.POST.getlist('mcq_max_mark')
-                negative_marks = self.request.POST.getlist('mcq_negative_mark')
-                feedbacks = self.request.POST.getlist('mcq_option_feedback')
-                is_correct_list = self.request.POST.getlist('mcq_is_correct_list')
-
-                question.mcqoption_set.all().delete()
-
-                for index, text in enumerate(texts):
-                    McqOption.objects.create(
-                        question=question,
-                        option_text=text,
-                        maximum_mark=max_marks[index] if max_marks[index] else 0,
-                        negative_mark=negative_marks[index] if negative_marks[index] else 0,
-                        option_feedback=feedbacks[index],
-                        order_sequence=index,
-                        isMultipleAnswers=allow_multiple,
-                        is_correct=(is_correct_list[index] == 'True')
-                    )
+                create_mcq_question(self.request, question)
 
             # --- EITHER / OR ---
             elif q_type == 1:
                 create_eo_option(self.request, question)
-                # labels = self.request.POST.getlist('eo_label')
-                # specific_feedbacks = self.request.POST.getlist('eo_specific_feedback')
-                # max_marks = self.request.POST.getlist('eo_max_mark')
-                # negative_marks = self.request.POST.getlist('eo_negative_mark')
-                # is_correct_list = self.request.POST.getlist('eo_is_correct_list')
-                #
-                # question.eitheroroption_set.all().delete()
-                #
-                # for index, label_text in enumerate(labels):
-                #     EitherOrOption.objects.create(
-                #         question=question,
-                #         label=label_text,
-                #         order_sequence=index,
-                #         is_correct=(is_correct_list[index] == 'True'),
-                #         specific_feedback=specific_feedbacks[index],
-                #         maximum_mark=max_marks[index] if max_marks[index] else 0,
-                #         negative_mark=negative_marks[index] if negative_marks[index] else 0
-                #     )
 
             # --- SHORT ANSWER ---
             elif q_type == 2:
@@ -328,6 +229,30 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return reverse('edit-quiz', kwargs={'pk': self.object.quiz_id})
 
 
+# ---------- HELPER FUNCTIONS ----------
+def create_mcq_question(request, question):
+    allow_multiple = request.POST.get('mcq_isMultipleAnswer') == 'on'
+    options_texts = request.POST.getlist('mcq_option_text')
+    max_marks = request.POST.getlist('mcq_max_mark')
+    negative_marks = request.POST.getlist('mcq_negative_mark')
+    option_feedbacks = request.POST.getlist('mcq_option_feedback')
+    is_correct_list = request.POST.getlist('mcq_is_correct_list')
+
+    # For when edit is done - won't have any side effects for new questions
+    question.mcqoption_set.all().delete()
+
+    for index, text in enumerate(options_texts):
+        McqOption.objects.create(
+            question=question,
+            option_text=text,
+            maximum_mark=max_marks[index] if max_marks[index] else 0,
+            negative_mark=negative_marks[index] if negative_marks[index] else 0,
+            option_feedback=option_feedbacks[index],
+            order_sequence=index,
+            isMultipleAnswers=allow_multiple,
+            is_correct=(is_correct_list[index] == 'True')
+        )
+
 def create_eo_option(request,question):
     label_texts = request.POST.getlist('eo_label_text')
     specific_feedbacks = request.POST.getlist('eo_specific_feedback')
@@ -348,3 +273,37 @@ def create_eo_option(request,question):
             maximum_mark=max_marks[index] if max_marks[index] else 0,
             negative_mark=negative_marks[index] if negative_marks[index] else 0
         )
+
+def create_sa_question(request, question):
+    max_words = request.POST.get('sa_max_word')
+    use_case = request.POST.get('sa_use_case')
+    answer = request.POST.get('sa_answer')
+    max_marks = request.POST.get('sa_max_mark')
+    negative_marks = request.POST.get('sa_negative_mark')
+
+    ShortAnswerQuestionOption.objects.create(
+        question=question,
+        maximum_word_length=max_words if max_words else None,
+        use_case=(use_case == '1'),
+        answer_text=answer,
+        maximum_mark=max_marks if max_marks else 0,
+        negative_mark=negative_marks if negative_marks else 0,
+    )
+
+def create_essay_question(request, question):
+    min_words = request.POST.get('essay_minword')
+    max_words = request.POST.get('essay_maxword')
+    max_marks = request.POST.get('essay_max_mark')
+    negative_marks = request.POST.get('essay_negative_mark')
+    model_answer = request.POST.get('essay_model_answer')
+
+    EssayQuestionOption.objects.create(
+        question=question,
+        minimum_word_length=min_words if min_words else None,
+        maximum_word_length=max_words if max_words else None,
+        maximum_mark=max_marks if max_marks else 0,
+        negative_mark=negative_marks if negative_marks else 0,
+        model_answer=model_answer,
+    )
+
+
