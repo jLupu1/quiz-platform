@@ -129,14 +129,7 @@
                                         <span class="badge bg-secondary-subtle text-secondary rounded-pill me-2 border border-secondary-subtle" style="font-size: 0.7rem;">
                                             Q{{ forloop.counter }}
                                         </span>
-                                        <span class="badge rounded-pill
-                                            {% if quiz_question.question.question_type == 0 %} bg-dark
-                                            {% elif quiz_question.question.question_type == 1 %} bg-warning
-                                            {% elif quiz_question.question.question_type == 2 %} bg-info
-                                            {% elif quiz_question.question.question_type == 3 %} bg-success
-                                            {% elif quiz_question.question.question_type == 4 %} bg-primary
-                                            {% else %} bg-secondary {% endif %}"
-                                            style="font-size: 0.7rem;">
+                                        <span class="badge rounded-pill {{ quiz_question.question.get_badge_color }}" style="font-size: 0.7rem;">
                                             {{ quiz_question.question.get_question_type_display }}
                                         </span>
                                     </div>

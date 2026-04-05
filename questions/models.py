@@ -14,6 +14,18 @@ class Question (models.Model):
     question_type = models.IntegerField(choices=QuestionType.choices)
     general_feedback = models.CharField(null=True, blank=True) #ovverrideable through quizQuestion
 
+    def get_badge_color(self):
+        """Returns the specific Bootstrap classes for the question type."""
+        colors = {
+            0: 'bg-dark text-white',  # MCQ
+            1: 'bg-warning text-white',  # Either/Or
+            2: 'bg-info text-white',  # Short Answer
+            3: 'bg-success text-white',  # Essay
+            4: 'bg-primary text-white'  # Text Filler
+        }
+        # Returns the color, or defaults to secondary if something goes wrong
+        return colors.get(self.question_type, 'bg-secondary text-white')
+
 class McqOption(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
     option_text = models.CharField(null=True, blank=True)
