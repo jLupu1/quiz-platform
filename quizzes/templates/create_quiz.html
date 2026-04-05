@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Create Quiz {% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'quizzes/quizzes.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-dark mb-2">Quiz Settings</h1>
+                <p class="text-muted fs-5">Configure the rules, timing, and review options before adding questions.</p>
+            </div>
+
+            <form method="POST" id="quiz-setup-form" novalidate>
+                {% csrf_token %}
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center"
+                         data-bs-toggle="collapse" href="#collapseGeneral" role="button" aria-expanded="true" aria-controls="collapseGeneral">
+                        <h4 class="h5 mb-0 fw-bold"><i class="bi bi-info-circle-fill me-2"></i> General Information</h4>
+                        <i class="bi bi-chevron-down toggle-icon fs-5"></i>
+                    </div>
+
+                    <div class="collapse show" id="collapseGeneral">
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h4 class="fw-bold fs-5">Course: {{ course.name }}</h4>
+                                    <div class="text-danger small mt-1">{{ form.course.errors|striptags }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Quiz {{ form.name.label }}</label>
+                                    {{ form.name }}
+                                    <div class="text-danger small mt-1">{{ form.name.errors|striptags }}</div>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">{{ form.introduction.label }}</label>
+                                    {{ form.introduction }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">{{ form.overall_feedback.label }}</label>
+                                    {{ form.overall_feedback }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center"
+                         data-bs-toggle="collapse" href="#collapseTiming" role="button" aria-expanded="false" aria-controls="collapseTiming">
+                        <h4 class="h5 mb-0 fw-bold"><i class="bi bi-clock-fill me-2"></i> Timing & Access</h4>
+                        <i class="bi bi-chevron-down toggle-icon fs-5"></i>
+                    </div>
+
+                    <div class="collapse" id="collapseTiming">
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.open_date.label }}</label>
+                                    {{ form.open_date }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.close_date.label }}</label>
+                                    {{ form.close_date }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.time_limit.label }}</label>
+                                    <div class="input-group">
+                                        {{ form.time_limit }}
+                                        <span class="input-group-text bg-light">mins</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center"
+                         data-bs-toggle="collapse" href="#collapseGrading" role="button" aria-expanded="false" aria-controls="collapseGrading">
+                        <h4 class="h5 mb-0 fw-bold"><i class="bi bi-check2-all me-2"></i> Grading & Attempts</h4>
+                        <i class="bi bi-chevron-down toggle-icon fs-5"></i>
+                    </div>
+
+                    <div class="collapse" id="collapseGrading">
+                        <div class="card-body p-4">
+                            <div class="row g-4 align-items-start">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.maximum_marks.label }}</label>
+                                    {{ form.maximum_marks }}
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.maximum_attempts.label }}</label>
+                                    {{ form.maximum_attempts }}
+                                    <div class="form-text small">-1 for unlimited</div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold">{{ form.delay_between_attempts.label }}</label>
+                                    {{ form.delay_between_attempts }}
+                                </div>
+
+                                <div class="col-12 mt-4 pt-3 border-top">
+                                    <div class="d-flex gap-4">
+                                        <div class="form-check form-switch">
+                                            {{ form.shuffle_questions }}
+                                            <label class="form-check-label fw-medium ms-1" for="{{ form.shuffle_questions.id_for_label }}">Shuffle Questions</label>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            {{ form.shuffle_answers }}
+                                            <label class="form-check-label fw-medium ms-1" for="{{ form.shuffle_answers.id_for_label }}">Shuffle Answers</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden">
+                    <div class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center"
+                         data-bs-toggle="collapse" href="#collapseReview" role="button" aria-expanded="false" aria-controls="collapseReview">
+                        <h4 class="h5 mb-0 fw-bold"><i class="bi bi-eye-fill me-2"></i> Review Options & Anonymity</h4>
+                        <i class="bi bi-chevron-down toggle-icon fs-5"></i>
+                    </div>
+
+                    <div class="collapse" id="collapseReview">
+                        <div class="card-body p-4 bg-light">
+
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.review_attempt }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.review_attempt.id_for_label }}">{{ form.review_attempt.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.review_right_answer }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.review_right_answer.id_for_label }}">{{ form.review_right_answer.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.review_marks }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.review_marks.id_for_label }}">{{ form.review_marks.label }}</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-1">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.review_specific_feedback }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.review_specific_feedback.id_for_label }}">{{ form.review_specific_feedback.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.review_general_feedback }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.review_general_feedback.id_for_label }}">{{ form.review_general_feedback.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.review_overall_feedback }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.review_overall_feedback.id_for_label }}">{{ form.review_overall_feedback.label }}</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4 mt-3 pt-4 border-top">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.show_user_picture }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.show_user_picture.id_for_label }}">{{ form.show_user_picture.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.anonymise_student }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.anonymise_student.id_for_label }}">{{ form.anonymise_student.label }}</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch">
+                                        {{ form.anonymise_marker }}
+                                        <label class="form-check-label fw-bold small text-uppercase text-muted ms-1" for="{{ form.anonymise_marker.id_for_label }}">{{ form.anonymise_marker.label }}</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-5 pb-5">
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-light border px-4 py-2 rounded-2 fw-medium text-muted">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-lg px-5 py-2 rounded-3 fw-bold shadow-sm">
+                        Next: Add Questions <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

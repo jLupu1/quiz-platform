@@ -10,6 +10,7 @@ from utils.question_status import QuestionStatus
 
 class Quiz (models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+
     name = models.CharField(max_length=100)
     introduction = models.TextField(null=True, blank=True)
     # TODO password
@@ -26,25 +27,26 @@ class Quiz (models.Model):
     time_limit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # -1 should be unlimited or leave blank for unlimited
     maximum_attempts = models.IntegerField(null=True, blank=True, default=-1)
+    delay_between_attempts = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
     # TODO grading_method
 
     # Review the attempt
-    review_attempt = models.BooleanField(null=True, blank=True,default=False)
-    review_right_answer = models.BooleanField(null=True, blank=True,default=False)
-    review_marks = models.BooleanField(null=True, blank=True,default=False)
+    review_attempt = models.BooleanField(default=False)
+    review_right_answer = models.BooleanField(default=False)
+    review_marks = models.BooleanField(default=False)
 
     #specific feedback regarding selected options
-    review_specific_feedback = models.BooleanField(null=True, blank=True, default=False)
+    review_specific_feedback = models.BooleanField( default=False)
     # general feedback for the question
-    review_general_feedback = models.BooleanField(null=True, blank=True, default=False)
+    review_general_feedback = models.BooleanField( default=False)
     # Overall feedback for the quiz
-    review_overall_feedback = models.BooleanField(null=True, blank=True, default=False)
+    review_overall_feedback = models.BooleanField( default=False)
 
-    show_user_picture = models.BooleanField(null=True, blank=True, default=False)
-    delay_between_attempts = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    show_user_picture = models.BooleanField( default=False)
 
-    anonymise_student = models.BooleanField(null=True, blank=True, default=False)
-    anonymise_marker = models.BooleanField(null=True, blank=True, default=False)
+    anonymise_student = models.BooleanField( default=False)
+    anonymise_marker = models.BooleanField(default=False)
 
 class QuizQuestion (models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

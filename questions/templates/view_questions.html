@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %} View Questions {% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 px-lg-5 mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold mb-0 text-dark">Review Questions</h1>
+
+        <div class="d-flex gap-3 align-items-center">
+            <a href="{% url 'create_question' quiz.id %}" class="btn btn-primary rounded-2 shadow-sm px-4 fw-bold">
+                <i class="bi bi-plus-lg me-2"></i> New Question
+            </a>
+        </div>
+    </div>
+    <div class="card border-dark rounded-2 shadow-sm mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light border-bottom border-dark">
+                        <tr>
+                            <th scope="col" class="py-3 text-secondary fw-bold">Question Number</th>
+                            <th scope="col" class="py-3 text-secondary fw-bold">Question Text</th>
+                            <th scope="col" class="py-3 text-secondary fw-bold">Question Type</th>
+                            <th scope="col" class="pe-4 py-3 text-center text-secondary fw-bold">Edit</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="user-list-tbody">
+                        {% include 'partials/question_record_partial.html' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <a href="{% url 'course_detail' course.id%}" class="btn btn-success"> <i class="bi bi-check-circle me-1"></i>Confirm</a>
+</div>
+{% endblock %}

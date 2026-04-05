@@ -1,0 +1,9 @@
+    .toggle-icon {  
+        transition: transform 0.3s ease;
+    }
+    .card-header[aria-expanded="true"] .toggle-icon {
+        transform: rotate(180deg);
+    }
+    .card-header {
+        cursor: pointer;
+    }

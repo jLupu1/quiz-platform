@@ -1,6 +1,4 @@
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetDoneView, PasswordChangeView, \
     PasswordResetConfirmView, PasswordResetCompleteView
@@ -10,7 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
-from django.views.generic import CreateView, UpdateView, DetailView, TemplateView
+from django.views.generic import CreateView, UpdateView, TemplateView
 
 from courses.models import Course
 from users.forms import *
@@ -71,7 +69,6 @@ class UpdateUserView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 def disenroll_user_from_course(request,user_id, course_id):
     course = get_object_or_404(Course, id=course_id)
     user = get_object_or_404(User, id=user_id)
-    print(course.name,user)
 
     course.enrollment.remove(user)
     return HttpResponse("")
@@ -116,8 +113,6 @@ class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return redirect('/')
 
     def post(self, request, *args, **kwargs):
-        print("🚨 --- INCOMING DATA CHECK --- 🚨")
-        print("FILES ATTACHED:", request.FILES)
         return super().post(request, *args, **kwargs)
 
 class CustomPasswordResetView(PasswordResetView):

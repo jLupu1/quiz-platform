@@ -1,0 +1,17 @@
+    /* Gives the question cards a nice subtle pop when hovered */
+    .question-card-hover {
+        transition: all 0.2s ease-in-out;
+    }
+    .question-card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+        border-color: #0d6efd !important; /* Bootstrap Primary Blue */
+    }
+    /* Creates a custom scrollbar for a cleaner look */
+    .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: #dee2e6;
+        border-radius: 10px;
+    }

@@ -27,6 +27,11 @@ urlpatterns = [
     path('users/',include("django.contrib.auth.urls")),
     path('',dashboard.views.index_dashboard,name='index'),
     path('courses/',include("courses.urls")),
+
+    path('quizzes/',include("quizzes.urls")),
+    path('questions/',include("questions.urls")),
+
+    # TODO remove dashboard and redirect to correct course page
     path('dashboard/', include('dashboard.urls')),
 
 ]

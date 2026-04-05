@@ -11,6 +11,12 @@
 <div class="container-fluid px-4 px-lg-5 mt-4">
 
     <div class="d-flex justify-content-between align-items-center mb-2">
+    <script>console.log({{ user.role }})</script>
+        {% if user.role == 2 %}
+            <a href="{% url 'admin_course_list' %}" class="btn btn-outline-secondary rounded-2">Back</a>
+        {% else %}
+            <a href="{% url 'courses' %}" class="btn btn-outline-secondary rounded-2">Back</a>
+        {% endif %}
         <h1 class="display-6 fw-bold mb-0 text-dark">{{ course.name|default:"Introduction to Java" }}</h1>
         <span class="badge bg-primary fs-5 px-3 py-2 rounded-2">{{ course.code|default:"COM1003" }}</span>
     </div>
@@ -24,45 +30,22 @@
 
                 <div class="pe-2" style="max-height: 40vh; overflow-y: auto;">
 
-                    <div class="card border-success border-2 mb-3 rounded-2 shadow-none">
+                    {% for quiz in quizzes %}
+                        <div class="card border-success border-2 mb-3 rounded-2 shadow-none">
                         <div class="card-body d-flex justify-content-between align-items-center px-3 py-3">
                             <div>
-                                <h5 class="card-title mb-2">Semester 1 Exam</h5>
+                                <h5 class="card-title mb-2">{{ quiz.name }}</h5>
                                 <p class="text-dark small fw-medium mb-0">
-                                    <i class="bi bi-calendar3 me-1"></i> 12th January 2026 &nbsp;&nbsp;
-                                    <i class="bi bi-clock me-1"></i> 9:00
+                                    <i class="bi bi-calendar3 me-1"></i> {{ quiz.open_date }} &nbsp;&nbsp;
+                                    <i class="bi bi-clock me-1"></i> {{ quiz.close_date }}
                                 </p>
                             </div>
-                            <a href="#" class="btn btn-sm btn-outline-success px-4 rounded-1">View</a>
+                            <a href="{% url 'edit-quiz' quiz.id %}" class="btn btn-sm btn-outline-success px-4 rounded-1">View</a>
                         </div>
                     </div>
-
-                    <div class="card border-warning border-2 mb-3 rounded-2 shadow-none">
-                        <div class="card-body d-flex justify-content-between align-items-center px-3 py-3">
-                            <div>
-                                <h5 class="card-title mb-2">End of Module Exam</h5>
-                                <p class="text-dark small fw-medium mb-0">
-                                    <i class="bi bi-calendar3 me-1"></i> 12th January 2026 &nbsp;&nbsp;
-                                    <i class="bi bi-clock me-1"></i> 12:00
-                                </p>
-                            </div>
-                            <a href="#" class="btn btn-sm btn-outline-warning px-4 rounded-1 text-dark">View</a>
-                        </div>
-                    </div>
-
-                    <div class="card border-secondary border-2 mb-3 rounded-2 shadow-none">
-                        <div class="card-body d-flex justify-content-between align-items-center px-3 py-3">
-                            <div>
-                                <h5 class="card-title mb-2">End of Topic Quiz</h5>
-                                <p class="text-dark small fw-medium mb-0">
-                                    <i class="bi bi-calendar3 me-1"></i> 15th January 2026 &nbsp;&nbsp;
-                                    <i class="bi bi-clock me-1"></i> 12:00
-                                </p>
-                            </div>
-                            <a href="#" class="btn btn-sm btn-outline-secondary px-4 rounded-1">View</a>
-                        </div>
-                    </div>
-
+                        {% empty %}
+                        <h3 class="fw-medium fs-5 mb-2">No upcoming quizzes</h3>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -123,7 +106,7 @@
 
                 <div class="d-flex flex-wrap gap-3 flex-grow-1 justify-content-center justify-content-md-around">
 
-                    <a href="#" class="btn btn-light border border-dark rounded-2 d-flex flex-column justify-content-center align-items-center p-2 text-dark text-decoration-none shadow-sm" style="width: 120px; height: 110px;">
+                    <a href="{% url 'create-quiz' course.id %}" class="btn btn-light border border-dark rounded-2 d-flex flex-column justify-content-center align-items-center p-2 text-dark text-decoration-none shadow-sm" style="width: 120px; height: 110px;">
                         <i class="bi bi-plus-circle fs-3 mb-2"></i>
                         <span class="small fw-medium text-center lh-sm">New Quiz</span>
                     </a>
