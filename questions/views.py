@@ -96,7 +96,7 @@ def get_question_partial(request):
         return HttpResponse("")
 
 @login_required(login_url='/users/login/')
-@user_passes_test(lambda u: u.role == u.is_staff_member, login_url='/users/login/')
+@user_passes_test(lambda u: u.is_staff_member, login_url='/users/login/')
 def add_mcq_options(request):
     return render(request, "partials/mcq_single_option.html")
 
@@ -126,7 +126,6 @@ class ViewQuestions(LoginRequiredMixin, UserPassesTestMixin,ListView):
         course = get_object_or_404(Course, id=quiz.course_id)
         is_enrolled = course.enrollment.filter(id=self.request.user.id).exists()
         return self.request.user.is_admin or is_enrolled
-
 
 class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = QuizQuestion
