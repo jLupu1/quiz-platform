@@ -11,7 +11,7 @@
             <h1 class="display-6 fw-bold text-dark mb-1">Edit Question</h1>
             <p class="text-muted fs-6 mb-0">Update settings for this question.</p>
         </div>
-        <input type="button" value="Back" onclick="history.go(-1);" class="btn btn-outline-secondary rounded-pill px-4">
+        <input type="button" value="Back" onclick="history.go(-1);" class="btn btn-outline-secondary rounded-2 px-4">
     </div>
 
     <form method="POST" id="edit-question-form">
@@ -62,11 +62,21 @@
                 {% endif %}
             </div>
 
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 mb-5">
-                <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm fw-bold">
-                    Save Changes
+            <div class="d-flex justify-content-between align-items-center mt-5 mb-4 border-top pt-4">
+
+                <button type="button" class="btn btn-outline-danger btn-lg px-4 rounded-2 shadow-sm fw-bold"
+                        hx-delete="{% url 'delete_question' quiz_question.id %}"
+                        hx-confirm="Are you sure you want to permanently delete this question?"
+                        hx-on::after-request="window.location.href='{% url 'edit-quiz' quiz_question.quiz_id %}'">
+                    <i class="bi bi-trash-fill me-2"></i>Delete Question
                 </button>
+
+                <button type="submit" class="btn btn-primary btn-lg px-5 rounded-2 shadow-sm fw-bold">
+                    <i class="bi bi-save me-2"></i>Save Changes
+                </button>
+
             </div>
+
         </div>
     </form>
 </div>

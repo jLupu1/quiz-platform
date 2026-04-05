@@ -58,7 +58,7 @@
 </header>
 {% endif %}
 
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <main>
     {% block content %}
     {% endblock %}

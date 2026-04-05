@@ -4,13 +4,14 @@ from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView, UpdateView
-
+from django.views.decorators.http import require_http_methods
+from django.views.generic import CreateView, ListView, UpdateView
 from courses.models import Course
 from questions.models import Question, McqOption, ShortAnswerQuestionOption, EssayQuestionOption, EitherOrOption, \
     TextFiller
 from quizzes.models import Quiz, QuizQuestion
 from users.models import UserRole
+from users.views import error_403
 
 
 # Create your views here.
@@ -21,7 +22,7 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     template_name = 'create_question.html'
 
     def test_func(self):
-        return self.request.user.role == UserRole.ADMIN or self.request.user.role == UserRole.TEACHER
+        return is_staff_and_enrolled(self.request, self.kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -122,10 +123,8 @@ class ViewQuestions(LoginRequiredMixin, UserPassesTestMixin,ListView):
         return context
 
     def test_func(self, **kwargs):
-        quiz = get_object_or_404(Quiz, id=self.kwargs.get('quiz_id'))
-        course = get_object_or_404(Course, id=quiz.course_id)
-        is_enrolled = course.enrollment.filter(id=self.request.user.id).exists()
-        return self.request.user.is_admin or is_enrolled
+        return is_staff_and_enrolled(self.request, self.kwargs)
+
 
 class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = QuizQuestion
@@ -136,12 +135,8 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     fields = []
 
     def test_func(self):
-        quiz_question = get_object_or_404(QuizQuestion, id=self.kwargs.get('pk'))
-        quiz = get_object_or_404(Quiz, id=quiz_question.quiz_id)
-        course = get_object_or_404(Course, id=quiz.course_id)
-        # Check if user is staff or enrolled
-        is_enrolled = course.enrollment.filter(id=self.request.user.id).exists()
-        return self.request.user.is_staff_member or is_enrolled
+       return is_staff_and_enrolled(self.request, self.kwargs)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -227,6 +222,18 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         # Redirect the teacher back to the split-screen Edit Quiz page
         return reverse('edit-quiz', kwargs={'pk': self.object.quiz_id})
 
+@login_required(login_url='/users/login/')
+@require_http_methods(["DELETE"]) # Block GET links
+def delete_question(request, **kwargs):
+    if not is_staff_and_enrolled(request,kwargs):
+        return error_403(request, exception="You are not enrolled in this module/course")
+
+    quiz_question = get_object_or_404(QuizQuestion, pk=kwargs['pk'])
+    quiz_question.delete()
+
+    updated_questions = QuizQuestion.objects.filter(quiz_id=quiz_question.quiz_id)
+    return render(request, 'partials/question_list_partial.html', {'questions': updated_questions})
+
 
 # ---------- HELPER FUNCTIONS ----------
 def create_mcq_question(request, question):
@@ -306,3 +313,21 @@ def create_essay_question(request, question):
     )
 
 
+def is_staff_and_enrolled(request,kwargs):
+    """Get to course via pk (quiz_question) or quiz_id. Then get if user is enrolled. Admin passed automatically"""
+    if request.user.role == UserRole.ADMIN:
+        return True
+    else:
+        quiz = None
+        # 1. Safely extract the Quiz based on whatever ID the URL provided
+        if kwargs.get('quiz_id'):
+            quiz = get_object_or_404(Quiz, id=kwargs.get('quiz_id'))
+        elif kwargs.get('pk'):
+            quiz_question = get_object_or_404(QuizQuestion, id=kwargs.get('pk'))
+            quiz = quiz_question.quiz
+
+        if not quiz:
+            return False
+
+        is_enrolled = quiz.course.enrollment.filter(id=request.user.id).exists()
+        return is_enrolled and request.user.is_staff_member
