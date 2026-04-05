@@ -36,8 +36,12 @@ class EditQuiz(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
     model = Quiz
     template_name = 'edit_quiz.html'
     fields = [
-        'name', 'introduction', 'open_date', 'close_date',
-        'time_limit', 'maximum_attempts', 'maximum_marks'
+        'name', 'introduction', 'overall_feedback', 'open_date', 'close_date',
+        'time_limit', 'maximum_attempts', 'maximum_marks', 'delay_between_attempts',
+        'shuffle_questions', 'shuffle_answers', 'review_attempt',
+        'review_right_answer', 'review_marks', 'review_specific_feedback',
+        'review_general_feedback', 'review_overall_feedback', 'show_user_picture',
+        'anonymise_student', 'anonymise_marker'
     ]
 
 
