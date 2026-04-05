@@ -73,22 +73,26 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
                     )
             # Either/Or
             elif question_type == '1':
-                label_texts = self.request.POST.getlist('eo_label_text')
-                specific_feedbacks = self.request.POST.getlist('eo_specific_feedback')
-                max_marks = self.request.POST.getlist('eo_max_mark')
-                negative_marks = self.request.POST.getlist('eo_negative_mark')
-                is_correct_list = self.request.POST.getlist('eo_is_correct_list')
+                create_eo_option(self.request,question)
+                # label_texts = self.request.POST.getlist('eo_label_text')
+                # specific_feedbacks = self.request.POST.getlist('eo_specific_feedback')
+                # max_marks = self.request.POST.getlist('eo_max_mark')
+                # negative_marks = self.request.POST.getlist('eo_negative_mark')
+                # is_correct_list = self.request.POST.getlist('eo_is_correct_list')
+                #
+                # print(label_texts,specific_feedbacks,max_marks,negative_marks,is_correct_list)
+                #
+                # for index, text in enumerate(label_texts):
+                #      EitherOrOption.objects.create(
+                #         question=question,
+                #         label=text,
+                #         order_sequence=index,
+                #         is_correct=(is_correct_list[index] == 'True'),
+                #         specific_feedback=specific_feedbacks[index],
+                #         maximum_mark=max_marks[index] if max_marks[index] else 0,
+                #         negative_mark=negative_marks[index] if negative_marks[index] else 0
+                #     )
 
-                for index, text in enumerate(label_texts):
-                    id = EitherOrOption.objects.create(
-                        question=question,
-                        option_text=text,
-                        order_sequence=index,
-                        is_correct=(is_correct_list[index] == 'True'),
-                        specific_feedback=specific_feedbacks[index],
-                        maximum_mark=max_marks[index] if max_marks[index] else 0,
-                        negative_mark=negative_marks[index] if negative_marks[index] else 0
-                    ).id
             # Short Answer
             elif question_type == '2':
                 max_words = self.request.POST.get('sa_max_word')
@@ -136,10 +140,9 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
         return reverse('create_question', kwargs={'quiz_id': self.kwargs.get('quiz_id')})
 
 @login_required(login_url='/users/login/')
-@user_passes_test(lambda u: u.role == u.is_staff_member, login_url='/users/login/')
+@user_passes_test(lambda u: u.is_staff_member, login_url='/users/login/')
 def get_question_partial(request):
     question_type = request.GET.get('question_type')
-    print(question_type)
     if question_type == '0':
         return render(request,'partials/mcq_partial.html')
     elif question_type == '1':
@@ -191,7 +194,7 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     template_name = 'edit_question.html'
     context_object_name = 'quiz_question'
 
-    # We leave this blank or pick a safe field, because we are manually handling the save!
+    # manually saving to leaving it empty
     fields = []
 
     def test_func(self):
@@ -213,7 +216,11 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         # Pre-load the specific options based on type so the HTML can fill the values!
         if question.question_type == 0:  # MCQ
             context['mcq_options'] = question.mcqoption_set.all()
-            context['mcq_settings'] = context['mcq_options'].first()  # To grab isMultipleAnswers
+            # To grab isMultipleAnswers
+            context['mcq_settings'] = context['mcq_options'].first()
+        elif question.question_type == 1: #either or
+            context['eo_options'] = question.eitheroroption_set.all()
+            print(context['eo_options'])
         elif question.question_type == 2:  # Short Answer
             context['short_answer'] = question.shortanswerquestionoption_set.first()
         # ... add others here as needed for your template context ...
@@ -258,24 +265,25 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
             # --- EITHER / OR ---
             elif q_type == 1:
-                labels = self.request.POST.getlist('eo_label')
-                specific_feedbacks = self.request.POST.getlist('eo_specific_feedback')
-                max_marks = self.request.POST.getlist('eo_max_mark')
-                negative_marks = self.request.POST.getlist('eo_negative_mark')
-                is_correct_list = self.request.POST.getlist('eo_is_correct_list')
-
-                question.eitheroroption_set.all().delete()
-
-                for index, label_text in enumerate(labels):
-                    EitherOrOption.objects.create(
-                        question=question,
-                        label=label_text,  # Matches your model's 'label' field
-                        order_sequence=index,
-                        is_correct=(is_correct_list[index] == 'True'),
-                        specific_feedback=specific_feedbacks[index],
-                        maximum_mark=max_marks[index] if max_marks[index] else 0,
-                        negative_mark=negative_marks[index] if negative_marks[index] else 0
-                    )
+                create_eo_option(self.request, question)
+                # labels = self.request.POST.getlist('eo_label')
+                # specific_feedbacks = self.request.POST.getlist('eo_specific_feedback')
+                # max_marks = self.request.POST.getlist('eo_max_mark')
+                # negative_marks = self.request.POST.getlist('eo_negative_mark')
+                # is_correct_list = self.request.POST.getlist('eo_is_correct_list')
+                #
+                # question.eitheroroption_set.all().delete()
+                #
+                # for index, label_text in enumerate(labels):
+                #     EitherOrOption.objects.create(
+                #         question=question,
+                #         label=label_text,
+                #         order_sequence=index,
+                #         is_correct=(is_correct_list[index] == 'True'),
+                #         specific_feedback=specific_feedbacks[index],
+                #         maximum_mark=max_marks[index] if max_marks[index] else 0,
+                #         negative_mark=negative_marks[index] if negative_marks[index] else 0
+                #     )
 
             # --- SHORT ANSWER ---
             elif q_type == 2:
@@ -318,3 +326,25 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_success_url(self):
         # Redirect the teacher back to the split-screen Edit Quiz page
         return reverse('edit-quiz', kwargs={'pk': self.object.quiz_id})
+
+
+def create_eo_option(request,question):
+    label_texts = request.POST.getlist('eo_label_text')
+    specific_feedbacks = request.POST.getlist('eo_specific_feedback')
+    max_marks = request.POST.getlist('eo_max_mark')
+    negative_marks = request.POST.getlist('eo_negative_mark')
+    is_correct_list = request.POST.getlist('eo_is_correct_list')
+    print(label_texts, specific_feedbacks, max_marks, negative_marks, is_correct_list)
+
+    question.eitheroroption_set.all().delete()
+
+    for index, text in enumerate(label_texts):
+        EitherOrOption.objects.create(
+            question=question,
+            label=text,
+            order_sequence=index,
+            is_correct=(is_correct_list[index] == 'True'),
+            specific_feedback=specific_feedbacks[index],
+            maximum_mark=max_marks[index] if max_marks[index] else 0,
+            negative_mark=negative_marks[index] if negative_marks[index] else 0
+        )

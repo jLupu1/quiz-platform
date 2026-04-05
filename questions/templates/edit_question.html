@@ -11,9 +11,7 @@
             <h1 class="display-6 fw-bold text-dark mb-1">Edit Question</h1>
             <p class="text-muted fs-6 mb-0">Update settings for this question.</p>
         </div>
-        <a href="{% url 'edit-quiz' quiz_question.quiz_id %}" class="btn btn-outline-secondary rounded-pill px-4">
-            <i class="bi bi-arrow-left me-2"></i>Back to Quiz
-        </a>
+        <input type="button" value="Back" onclick="history.go(-1);" class="btn btn-outline-secondary rounded-pill px-4">
     </div>
 
     <form method="POST" id="edit-question-form">
@@ -49,22 +47,23 @@
         <div id="dynamic-sections-container">
 
             <div id="dynamic-sections-container">
-    {% if question.question_type == 0 %}
-        {% include 'partials/mcq_partial.html' %}
+                {% if question.question_type == 0 %}
+                    {% include 'partials/mcq_partial.html' %}
 
-    {% elif question.question_type == 1 %}
-        {% include 'partials/either_or_partial.html' %}
+                {% elif question.question_type == 1 %}
+                    {% include 'partials/either_or_partial.html' %}
 
-    {% elif question.question_type == 2 %}
-        {% include 'partials/short_answer_partial.html' %}
+                {% elif question.question_type == 2 %}
+                    {% include 'partials/short_answer_partial.html' %}
 
-    {% endif %}
-</div>
+                {% endif %}
+            </div>
 
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 mb-5">
-            <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm fw-bold">
-                Save Changes
-            </button>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4 mb-5">
+                <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill shadow-sm fw-bold">
+                    Save Changes
+                </button>
+            </div>
         </div>
     </form>
 </div>

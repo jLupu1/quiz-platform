@@ -42,7 +42,7 @@
                                     {% endif %}
                                     <p class="mb-0 small fw-medium text-truncate" title="{{ added_question.question.question_text }}">{{ added_question.question.question_text }}</p>
                                 </div>
-                                <a href="#" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
+                                <a href="{% url 'edit_question' added_question.id %}" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
                             </div>

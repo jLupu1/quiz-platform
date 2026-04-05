@@ -8,5 +8,6 @@ urlpatterns = [
     path('create/get-question-partial/',views.get_question_partial,name='get_question_partial'),
     path('create/get-mcq-option/', views.add_mcq_options, name='add_mcq_options'),
     path('view/<int:quiz_id>/',views.ViewQuestions.as_view(), name='view_questions'),
+    # QuizQuestion Id
     path('edit/<int:pk>/',views.EditQuestion.as_view(), name='edit_question'),
 ]
