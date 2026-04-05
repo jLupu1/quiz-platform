@@ -69,7 +69,6 @@ class UpdateUserView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 def disenroll_user_from_course(request,user_id, course_id):
     course = get_object_or_404(Course, id=course_id)
     user = get_object_or_404(User, id=user_id)
-    print(course.name,user)
 
     course.enrollment.remove(user)
     return HttpResponse("")

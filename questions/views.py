@@ -118,7 +118,6 @@ class ViewQuestions(LoginRequiredMixin, UserPassesTestMixin,ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['quiz'] = get_object_or_404(Quiz, id=self.kwargs.get('quiz_id'))
-        print(context['quiz'])
         context['course'] = get_object_or_404(Course, id=context['quiz'].course_id)
         return context
 
@@ -153,7 +152,6 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             context['mcq_settings'] = context['mcq_options'].first()
         elif question.question_type == 1: #either or
             context['eo_options'] = question.eitheroroption_set.all()
-            print(context['eo_options'])
         elif question.question_type == 2:  # Short Answer
             context['sa_options'] = question.shortanswerquestionoption
         elif question.question_type == 3:  #Essay
@@ -265,7 +263,6 @@ def create_eo_option(request,question):
     max_marks = request.POST.getlist('eo_max_mark')
     negative_marks = request.POST.getlist('eo_negative_mark')
     is_correct_list = request.POST.getlist('eo_is_correct_list')
-    print(label_texts, specific_feedbacks, max_marks, negative_marks, is_correct_list)
 
     question.eitheroroption_set.all().delete()
 
