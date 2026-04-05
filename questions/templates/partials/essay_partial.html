@@ -6,23 +6,23 @@
         <div class="row g-3">
             <div class="col-md-3">
                 <label class="form-label fw-bold">Min Words</label>
-                <input type="number" class="form-control" name="essay_minword">
+                <input type="number" class="form-control" name="essay_minword" value="{{ essay_options.minimum_word_length }}">
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-bold">Max Words</label>
-                <input type="number" class="form-control" name="essay_maxword">
+                <input type="number" class="form-control" name="essay_maxword" value="{{ essay_options.maximum_word_length }}">
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-bold">Max Mark</label>
-                <input type="number" step="0.1" class="form-control" name="essay_max_mark">
+                <input type="number" step="0.1" class="form-control" name="essay_max_mark" value="{{ essay_options.maximum_mark }}">
             </div>
             <div class="col-md-3">
                 <label class="form-label fw-bold small">Negative Mark</label>
-                <input type="number" step="0.1" class="form-control" name="essay_negative_mark">
+                <input type="number" step="0.1" class="form-control" name="essay_negative_mark" value="{{ essay_options.negative_mark }}">
             </div>
             <div class="col-12 mt-3">
                 <label class="form-label fw-bold">Model Answer (For Grading Reference)</label>
-                <textarea class="form-control" name="essay_model_answer" rows="4"></textarea>
+                <textarea class="form-control" name="essay_model_answer" rows="4">{{ essay_options.model_answer }}</textarea>
             </div>
         </div>
     </div>

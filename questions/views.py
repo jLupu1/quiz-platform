@@ -161,9 +161,9 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             context['eo_options'] = question.eitheroroption_set.all()
             print(context['eo_options'])
         elif question.question_type == 2:  # Short Answer
-            context['short_answer'] = question.shortanswerquestionoption_set.first()
-        # ... add others here as needed for your template context ...
-
+            context['sa_options'] = question.shortanswerquestionoption
+        elif question.question_type == 3:  #Essay
+            context['essay_options'] = question.essayquestionoption
         return context
 
     def form_valid(self, form):

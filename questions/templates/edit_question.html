@@ -56,6 +56,9 @@
                 {% elif question.question_type == 2 %}
                     {% include 'partials/short_answer_partial.html' %}
 
+                {% elif question.question_type == 3 %}
+                    {% include 'partials/essay_partial.html' %}
+
                 {% endif %}
             </div>
 
