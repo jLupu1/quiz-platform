@@ -144,8 +144,11 @@ class UserUpdateForm(forms.ModelForm):
         rest_breaks_inp = self.cleaned_data.get('rest_breaks')
         special_equip_inp = self.cleaned_data.get('special_equipment')
 
+        print("the input is: " + str(rest_breaks_inp))
+
         if commit:
-            needs_arrangement = bool(extra_time_inp or rest_breaks_inp or special_equip_inp)
+            needs_arrangement = bool(extra_time_inp  or rest_breaks_inp or special_equip_inp)
+            print("the boolean is: " + str(needs_arrangement))
 
             if needs_arrangement:
                 if hasattr(user, 'arrangement') and user.arrangement:

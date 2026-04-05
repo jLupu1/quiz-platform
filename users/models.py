@@ -16,7 +16,7 @@ class UserRole(IntEnum):
         return [(cls.value,cls.name) for cls in UserRole]
 class Arrangement(models.Model):
     extra_time = models.DecimalField(decimal_places=2, max_digits=10, null=True, blank=True)
-    rest_breaks = models.IntegerField(null=True, blank=True)
+    rest_breaks = models.BooleanField(default=False)
     special_equipment = models.CharField(max_length=500, null=True, blank=True)
 
 def profile_pic_filename(instance, filename):
