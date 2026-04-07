@@ -1,15 +1,13 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, ListView, UpdateView
-
 from courses.forms import CourseCreationForm
 from courses.models import Course
-from quizzes.models import Quiz
 from users.models import UserRole
-from users.views import error_403
 
 
 # Create your views here.
@@ -47,7 +45,7 @@ def course_detail(request, pk):
     is_enrolled = course.enrollment.filter(id=request.user.id).exists()
 
     if not(is_admin or is_enrolled):
-        return error_403(request, exception="You are not enrolled in this module/course")
+        raise PermissionDenied("You are not enrolled in this module/course")
 
     context = {
         'course': course,

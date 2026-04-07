@@ -11,7 +11,7 @@ from questions.models import Question, McqOption, ShortAnswerQuestionOption, Ess
     TextFiller
 from quizzes.models import Quiz, QuizQuestion
 from users.models import UserRole
-from users.views import error_403
+from django.core.exceptions import PermissionDenied
 
 
 # Create your views here.
@@ -224,7 +224,7 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 @require_http_methods(["DELETE"]) # Block GET links
 def delete_question(request, **kwargs):
     if not is_staff_and_enrolled(request,kwargs):
-        return error_403(request, exception="You are not enrolled in this module/course")
+        raise PermissionDenied("You are not enrolled in this module/course")
 
     quiz_question = get_object_or_404(QuizQuestion, pk=kwargs['pk'])
     quiz_question.delete()

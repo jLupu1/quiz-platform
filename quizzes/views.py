@@ -1,6 +1,10 @@
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import get_object_or_404
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView, UpdateView
 
 from courses.models import Course
@@ -60,3 +64,26 @@ class EditQuiz(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
 
     def get_success_url(self):
         return reverse('edit-quiz', kwargs={'pk': self.object.pk})
+
+@login_required(login_url='/users/login/')
+@require_http_methods(["DELETE"]) # Block GET links
+def delete_quiz(request, **kwargs):
+    quiz_id = kwargs['pk']
+    if not is_staff_and_enrolled(request,quiz_id):
+        raise PermissionDenied("You are not enrolled in this module/course")
+
+    quiz = get_object_or_404(Quiz, pk=kwargs['pk'])
+    quiz.delete()
+
+    return HttpResponse("")
+
+
+def is_staff_and_enrolled(request,quiz_id):
+    if request.user.is_admin:
+        return True
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    course = get_object_or_404(Course, id=quiz.course_id)
+    is_enrolled = course.enrollment.filter(id=request.user.id).exists()
+    print(is_enrolled)
+    print(request.user.is_staff_member)
+    return is_enrolled and request.user.is_staff_member

@@ -73,14 +73,6 @@ def disenroll_user_from_course(request,user_id, course_id):
     course.enrollment.remove(user)
     return HttpResponse("")
 
-
-# Error views
-def error_403(request, exception):
-    return render(request, 'errors/error_403.html', status=403)
-
-def error_404(request, exception):
-    return render(request, 'errors/error_404.html', status=404)
-
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'profile/profile.html'
 
@@ -136,3 +128,53 @@ class CustomPasswordChangeView(SuccessMessageMixin, PasswordChangeView):
     template_name = 'registration/custom_password_change_form.html'
     success_url = reverse_lazy('profile')
     success_message = "Your password was successfully updated!"
+
+
+
+# Error views
+def error_401(request, exception):
+    context = {
+        'status_code': 401,
+        'error_title': 'Permission Denied',
+        'error_message': "Sorry, you don't seem to be authenticated.",
+        'exception': str(exception) if exception else ''
+    }
+    return render(request, 'errors/error_page.html', status=401, context=context)
+def error_403(request, exception):
+    context = {
+        'status_code': 403,
+        'error_title': 'Access Denied',
+        'error_message': "Sorry, you don't have permission to view this page.",
+        'exception': str(exception) if exception else ''
+    }
+    return render(request, 'errors/error_page.html', status=403,
+                  context=context)
+
+def error_404(request, exception):
+    context = {
+        'status_code': 404,
+        'error_title': 'Page Not Found',
+        'error_message': "Sorry, we could not find this page.",
+        'exception': str(exception) if exception else ''
+    }
+    return render(request, 'errors/error_page.html', status=404, context=context)
+
+def error_405(request, exception):
+    context = {
+        'status_code': 405,
+        'error_title': 'Method Not Allowed',
+        'error_message': "Sorry, this action is not allowed.",
+        'exception': str(exception) if exception else ''
+    }
+    return render(request, 'errors/error_page.html', status=405, context=context)
+def error_500(request,exception):
+        context = {
+            'status_code': 500,
+            'error_title': 'Server Error',
+            'error_message': "Sorry, something went wrong.",
+            'exception': str(exception) if exception else ''
+        }
+        return render(request, 'errors/error_page.html', status=500, context=context)
+
+
+

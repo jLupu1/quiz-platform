@@ -1,9 +1,6 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
-
-from users.views import error_403
-
 
 # Create your views here.
 @login_required(login_url='/users/login')
@@ -18,7 +15,7 @@ def index_dashboard(request):
         return admin_dashboard(request)
 
     else:
-        return error_403(request)
+        raise PermissionDenied("You are not enrolled in this module/course")
 
 @login_required(login_url='/users/login')
 @user_passes_test(lambda user: user.is_student,redirect_field_name="error403",login_url="/users/login/")

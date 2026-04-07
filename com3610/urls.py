@@ -41,3 +41,6 @@ if settings.DEBUG:
 
 handler403 = 'users.views.error_403'
 handler404 = 'users.views.error_404'
+handler500 = 'users.views.error_500'
+handler405 = 'users.views.error_405'
+handler401 = 'users.views.error_401'
