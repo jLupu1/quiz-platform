@@ -129,7 +129,7 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
         context['first_question'] = context['question_list'].first()
 
-        answered_ids = attempt.responses.values_list('question_id', flat=True)
+        answered_ids = attempt.responses.values_list('quiz_question_id', flat=True)
         context['answered_question_ids'] = list(answered_ids)
 
         return self.render_to_response(context)
@@ -192,9 +192,9 @@ def question_engine(request, attempt_id, question_id):
     if request.method == "POST":
         response, created = Response.objects.get_or_create(
             attempt=attempt,
-            question=quiz_question,  # Make sure this matches your models.py!
+            quiz_question=quiz_question,
         )
-        existing_response = response  # Keep context happy on POSTs
+        existing_response = response
 
         if 'answer_text' in request.POST:
             response.answer_given = request.POST.get('answer_text')
@@ -215,9 +215,9 @@ def question_engine(request, attempt_id, question_id):
             successfully_saved = True
 
     elif request.method == "GET":
-        existing_response = Response.objects.filter(attempt=attempt, question=quiz_question).first()
+        existing_response = Response.objects.filter(attempt=attempt, quiz_question=quiz_question).first()
 
-        # Extract all saved option IDs into a simple Python list so the template can check them easily!
+        # Extract all saved option IDs into a list
     existing_response_option_ids = []
     if existing_response:
         # MCQ
@@ -267,6 +267,7 @@ def submit_quiz(request, attempt_id):
     # 2. Lock it down!
     attempt.is_completed = True
     attempt.save()
+    attempt.grade_attempt()
 
     # 3. Send them to the results/celebration page
     messages.success(request, "Quiz submitted successfully!")
@@ -278,20 +279,24 @@ def submit_quiz(request, attempt_id):
 def quiz_results(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
 
-    # Security: If they somehow get here before finishing, boot them back to the quiz!
     if not attempt.is_completed:
         return redirect('take_quiz', attempt_id=attempt.id)
 
-    # Calculate some quick stats for the user
     total_questions = attempt.quiz.quizquestion_set.count()
-    # (Use response_set.count() if you didn't set a related_name on Response)
     answered_questions = attempt.responses.count()
+
+    # Sees if there is response with null - meaning essay TODO for now
+    pending_grading = attempt.responses.filter(marks_given__isnull=True).exists()
+
 
     context = {
         'attempt': attempt,
         'total_questions': total_questions,
         'answered_questions': answered_questions,
         'unanswered_count': total_questions - answered_questions,
+        'pending_grading':pending_grading,
+        'review_marks':attempt.quiz.review_marks
+
     }
 
     return render(request, 'student/quiz_results.html', context)

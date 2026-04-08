@@ -1,19 +1,16 @@
 from datetime import timedelta
 
 from django.core.exceptions import ValidationError
-from django.db.models import UniqueConstraint, Q
+from django.db.models import UniqueConstraint, Q, Sum
 from django.utils import timezone
 
 from django.db import models
 
 from com3610 import settings
 from courses.models import Course
-from questions.models import Question
+from questions.models import Question, QuestionType
 from utils.question_status import QuestionStatus
 from utils.quiz_utils import QuizOpenStatus, QuizMarkingStatus
-
-
-# Create your models here.
 
 
 class Quiz (models.Model):
@@ -81,7 +78,7 @@ class Quiz (models.Model):
         if self.status == self.QuizStatus.CLOSED:
             return False
 
-        # Rule 4: Automatic / Scheduled
+        # scheduled/auto
         if self.status == self.QuizStatus.SCHEDULED:
             now = timezone.now()
 
@@ -121,6 +118,43 @@ class Quiz (models.Model):
                     'close_date': "The close date must be after the open date."
                 })
 
+    def recalculate_maximum_marks(self):
+        """Calculates the max score by asking the database directly."""
+        total = 0
+        for qq in self.quizquestion_set.all():
+            q = qq.question
+
+            if q.question_type == QuestionType.MCQ:
+                first_option = q.mcqoption_set.first()
+
+                if first_option and getattr(first_option, 'isMultipleAnswers', False):
+                    correct_options_sum = q.mcqoption_set.filter(is_correct=True).aggregate(Sum('maximum_mark'))[
+                        'maximum_mark__sum']
+                    total += (correct_options_sum or 0)
+
+                else:
+                    highest_option = q.mcqoption_set.filter(is_correct=True).order_by('-maximum_mark').first()
+                    if highest_option:
+                        total += (highest_option.maximum_mark or 0)
+
+            elif q.question_type == QuestionType.SHORT_ANSWER:
+                sa = q.shortanswerquestionoption
+                if sa:
+                    total += (sa.maximum_mark or 0)
+
+            elif q.question_type == QuestionType.EITHER_OR:
+                highest_eo = q.eitheroroption_set.filter(is_correct=True).order_by('-maximum_mark').first()
+                if highest_eo:
+                    total += (highest_eo.maximum_mark or 0)
+
+            elif q.question_type == QuestionType.ESSAY_QUESTION:
+                essay = q.essayquestionoption
+                if essay:
+                    total += (essay.maximum_mark or 0)
+
+        self.maximum_marks = total
+        self.save()
+
 class QuizQuestion (models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
@@ -151,8 +185,21 @@ class Attempt (models.Model):
     def is_time_up(self):
         return timezone.now() > self.deadline
 
+    def grade_attempt(self):
+        responses = self.responses.select_related('quiz_question__question').all()
+        total_marks = 0
+        for response in responses:
+            question_type = response.quiz_question.question.question_type
+            if question_type in [QuestionType.MCQ, QuestionType.EITHER_OR]:
+                response.auto_grade()
+                total_marks += (response.marks_given or 0)
+        self.total_marks_given = total_marks
+        self.save()
+
+
+
 class Response (models.Model):
-    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    quiz_question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
     attempt = models.ForeignKey(Attempt, related_name='responses' ,on_delete=models.CASCADE)
 
     status = models.IntegerField(choices=QuestionStatus.choices(), null=True, blank=True, default=0)
@@ -161,7 +208,56 @@ class Response (models.Model):
 
     class Meta:
         #student can only have ONE answer per question per attempt
-        unique_together = ('attempt', 'question')
+        unique_together = ('attempt', 'quiz_question')
+
+    def auto_grade(self):
+        question = self.quiz_question.question
+
+        #  Default to 0 marks
+        self.marks_given = 0
+
+        # returns None if been skipped
+        selected = self.selected_options.first()
+
+        # save the 0 and exit early is skipped
+        if not selected:
+            self.save()
+            return
+
+        # grade MCQ
+        if question.question_type == QuestionType.MCQ:
+            first_option = question.mcqoption_set.first()
+
+            if first_option and getattr(first_option, 'isMultipleAnswers', False):
+                chosen_options = self.selected_options.select_related('mcq_option').all()
+
+                raw_marks = 0
+
+                for selected in chosen_options:
+                    mcq_opt = selected.mcq_option
+
+                    if mcq_opt.is_correct:
+                        raw_marks += (mcq_opt.maximum_mark or 0)
+                    else:
+                        raw_marks -= (mcq_opt.negative_mark or 0)
+                self.marks_given = max(0, raw_marks)
+            else:
+                chosen_option = question.mcqoption_set.filter(id=selected.mcq_option_id).first()
+
+                if chosen_option and chosen_option.is_correct:
+                    self.marks_given = chosen_option.maximum_mark
+                else:
+                    self.marks_given = -chosen_option.negative_mark
+
+        elif question.question_type == QuestionType.EITHER_OR:
+            chosen_option = question.eitheroroption_set.filter(id=selected.eo_option_id).first()
+
+            if chosen_option and chosen_option.is_correct:
+                self.marks_given = chosen_option.maximum_mark
+            else:
+                self.marks_given = -chosen_option.negative_mark
+
+        self.save()
 
 class ResponseOption(models.Model):
     """For MCQ/EO question response - skipped if question is text only, just store the id of the options chosen"""
