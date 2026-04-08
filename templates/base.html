@@ -60,9 +60,44 @@
 
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <main>
+  <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 1060; margin-top: 60px;">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show shadow-lg border-0" role="alert" style="min-width: 300px;">
+
+                    {% if message.tags == 'error' %}
+                        <i class="bi bi-exclamation-triangle-fill me-2 fs-5 align-middle"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="bi bi-check-circle-fill me-2 fs-5 align-middle"></i>
+                    {% else %}
+                        <i class="bi bi-info-circle-fill me-2 fs-5 align-middle"></i>
+                    {% endif %}
+
+                    <span class="align-middle fw-medium">{{ message }}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
     {% block content %}
     {% endblock %}
   </main>
 </body>
 
 </html>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Find all alerts on the page
+        let alerts = document.querySelectorAll('.alert');
+
+        alerts.forEach(function(alert) {
+            // Only auto-dismiss if it is NOT an error (danger)
+            if (!alert.classList.contains('alert-danger')) {
+                setTimeout(function() {
+                    let bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 4000); // 4 secs
+            }
+        });
+    });
+</script>

@@ -55,7 +55,7 @@ class EssayQuestionOption(models.Model):
 
 class ShortAnswerQuestionOption(models.Model):
     question = models.OneToOneField('Question', on_delete=models.CASCADE)
-    maximum_word_count = models.IntegerField()
+    maximum_word_count = models.IntegerField(null=True, blank=True)
     use_case = models.BooleanField(default=False)
     answer_text = models.CharField(null=False, blank=False)
     maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)

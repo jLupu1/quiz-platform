@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint, Q
 from django.utils import timezone
 
@@ -9,11 +10,18 @@ from com3610 import settings
 from courses.models import Course
 from questions.models import Question
 from utils.question_status import QuestionStatus
+from utils.quiz_utils import QuizOpenStatus, QuizMarkingStatus
 
 
 # Create your models here.
 
+
 class Quiz (models.Model):
+    class QuizStatus(models.IntegerChoices):
+        CLOSED = 0, 'Closed / Draft'
+        OPEN = 1, 'Manually Open'
+        SCHEDULED = 2, 'Scheduled (Automatic)'
+
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=100)
@@ -28,6 +36,10 @@ class Quiz (models.Model):
     # Blank means no restrictions
     open_date = models.DateTimeField(null=True, blank=True)
     close_date = models.DateTimeField(null=True, blank=True)
+
+    status = models.IntegerField(choices=QuizStatus.choices, default=QuizStatus.CLOSED)
+    marking_status = models.IntegerField(choices=QuizMarkingStatus.choices(), default=0)
+
     # Blank means no timelimit
     time_limit = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # -1 should be unlimited or leave blank for unlimited
@@ -52,6 +64,67 @@ class Quiz (models.Model):
 
     anonymise_student = models.BooleanField( default=False)
     anonymise_marker = models.BooleanField(default=False)
+
+    @property
+    def is_currently_available(self):
+        """This evaluates all your business rules in real-time."""
+
+        #no qs?
+        if not self.quizquestion_set.exists():
+            return False
+
+        # teacher opened it
+        if self.status == self.QuizStatus.OPEN:
+            return True
+
+        # teacher closed it
+        if self.status == self.QuizStatus.CLOSED:
+            return False
+
+        # Rule 4: Automatic / Scheduled
+        if self.status == self.QuizStatus.SCHEDULED:
+            print("set to SCHEDULED")
+            print(f"OPEN DATE: {self.open_date}")
+            print(f"CLOSE DATE: {self.close_date}")
+            now = timezone.now()
+            print(f"SERVER NOW: {now}")
+
+
+            if self.open_date and self.close_date:
+                print("true one")
+                if self.open_date <= now <= self.close_date:
+                    return True
+            elif self.open_date and not self.close_date:
+                if self.open_date <= now:
+                    return True
+            elif not self.open_date and self.close_date:
+                if now <= self.close_date:
+                    return True
+            else:
+                # if there is no open or close time but set on automatic open the quiz
+                return True
+            print("false>")
+        return False
+
+    def clean(self):
+        """blocks bad data from saving to the database."""
+        super().clean()
+
+        # If the teacher tries to save it as OPEN or SCHEDULED, check for questions!
+        if self.status in [self.QuizStatus.OPEN, self.QuizStatus.SCHEDULED]:
+            if not self.pk or not self.quizquestion_set.exists():
+                raise ValidationError({
+                    'status': "You cannot open or schedule a quiz until you add at least one question."
+                })
+
+        if self.open_date and self.close_date:
+
+            # Check if the close date is before or exactly equal to the open date
+            if self.close_date <= self.open_date:
+                # We target 'close_date' so the error attaches to that specific field
+                raise ValidationError({
+                    'close_date': "The close date must be after the open date."
+                })
 
 class QuizQuestion (models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)

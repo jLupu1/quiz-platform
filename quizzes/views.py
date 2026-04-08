@@ -35,14 +35,24 @@ class CreateQuiz(LoginRequiredMixin,UserPassesTestMixin,CreateView):
         form.instance.course_id = self.kwargs.get('course_id')
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+        if 'close_date' in form.errors:
+            messages.error(self.request, form.errors['close_date'][0])
+        else:
+            messages.error(self.request, "Please correct the errors in the form below.")
+
+        return super().form_invalid(form)
+
     def get_success_url(self):
         return reverse('create_question', kwargs={'quiz_id': self.object.id})
 
-class EditQuiz(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
+class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Quiz
     template_name = 'manage/edit_quiz.html'
+
+    # It is usually safer to define these in a forms.py file, but this works perfectly!
     fields = [
-        'name', 'introduction', 'overall_feedback', 'open_date', 'close_date',
+        'name', 'introduction', 'overall_feedback', 'open_date', 'close_date', 'status',
         'time_limit', 'maximum_attempts', 'maximum_marks', 'delay_between_attempts',
         'shuffle_questions', 'shuffle_answers', 'review_attempt',
         'review_right_answer', 'review_marks', 'review_specific_feedback',
@@ -50,21 +60,32 @@ class EditQuiz(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
         'anonymise_student', 'anonymise_marker'
     ]
 
-
-    def test_func(self, **kwargs):
-        quiz = get_object_or_404(Quiz, id=self.kwargs['pk'])
-        course = get_object_or_404(Course, id=quiz.course_id)
-        is_enrolled = course.enrollment.filter(id=course.id).exists()
-
-        return self.request.user.is_staff_member or is_enrolled
-
+    def test_func(self):
+        return is_staff_and_enrolled(self.request, self.kwargs['pk'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['questions'] = QuizQuestion.objects.filter(quiz=self.object)
+        # Using .prefetch_related or just querying the reverse relationship
+        context['questions'] = self.object.quizquestion_set.all()
         return context
 
+    def form_valid(self, form):
+        messages.success(self.request, "Quiz settings updated successfully!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        # Check if our custom rule for the 'status' field was triggered
+        if 'status' in form.errors:
+            messages.error(self.request, form.errors['status'][0])
+        elif 'close_date' in form.errors:
+            messages.error(self.request, form.errors['close_date'][0])
+        else:
+            messages.error(self.request, "Please correct the errors in the form below.")
+
+        return super().form_invalid(form)
+
     def get_success_url(self):
+        # Make sure 'edit_quiz' matches exactly what is in your urls.py!
         return reverse('edit-quiz', kwargs={'pk': self.object.pk})
 
 @login_required(login_url='/users/login/')
@@ -92,6 +113,10 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         attempt = get_object_or_404(Attempt, id=self.kwargs['attempt_id'], user=self.request.user)
 
+        if not attempt.quiz.is_currently_available:
+            messages.error(request, "This quiz has been closed.")
+            return redirect('course_detail', course_id=attempt.quiz.course_id)
+
         if attempt.is_completed or attempt.is_time_up:
             return redirect('quiz_landing', quiz_id=attempt.quiz.id)
 
@@ -112,6 +137,10 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 # TODO restrictions
 def quiz_landing_page(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
+
+    if not quiz.is_currently_available:
+        messages.error(request, "This quiz is not currently open for attempts.")
+        return redirect('course_detail',pk=quiz.course_id)
 
     past_attempts = Attempt.objects.filter(quiz=quiz).order_by('-start_time')
     attempt_count = past_attempts.count()
