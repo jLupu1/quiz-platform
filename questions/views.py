@@ -286,7 +286,7 @@ def create_sa_question(request, question):
 
     ShortAnswerQuestionOption.objects.create(
         question=question,
-        maximum_word_length=max_words if max_words else None,
+        maximum_word_count=max_words if max_words else None,
         use_case=(use_case == '1'),
         answer_text=answer,
         maximum_mark=max_marks if max_marks else 0,
@@ -302,8 +302,8 @@ def create_essay_question(request, question):
 
     EssayQuestionOption.objects.create(
         question=question,
-        minimum_word_length=min_words if min_words else None,
-        maximum_word_length=max_words if max_words else None,
+        minimum_word_count=min_words if min_words else None,
+        maximum_word_count=max_words if max_words else None,
         maximum_mark=max_marks if max_marks else 0,
         negative_mark=negative_marks if negative_marks else 0,
         model_answer=model_answer,

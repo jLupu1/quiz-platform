@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %} Quiz Submitted {% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-dark-subtle shadow text-center rounded-2">
+                <div class="card-body p-5">
+                    
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="fw-bold mb-3">Quiz Submitted!</h2>
+                    <p class="text-muted fs-5 mb-4">Your responses for <strong>{{ attempt.quiz.name }}</strong> have been securely saved.</p>
+                    
+                    <div class="d-flex justify-content-center gap-4 mb-4">
+                        <div class="p-3 bg-light rounded-2 border border-dark-subtle w-50">
+                            <h3 class="fw-bold text-primary mb-0">{{ answered_questions }} / {{ total_questions }}</h3>
+                            <span class="text-muted small text-uppercase fw-bold">Questions Answered</span>
+                        </div>
+                    </div>
+
+                    {% if unanswered_count > 0 %}
+                        <div class="alert alert-warning py-2 mb-4">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                            You left {{ unanswered_count }} question(s) blank.
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'course_detail' attempt.quiz.course_id %}" class="btn btn-primary btn-lg px-5 fw-bold rounded-1 shadow-sm">
+                        Return to Course
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

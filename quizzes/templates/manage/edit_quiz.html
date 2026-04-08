@@ -4,28 +4,7 @@
 {% block title %}Edit Quiz{% endblock %}
 
 {% block extra_css %}
-<style>
-    .question-list-scroll {
-        max-height: calc(100vh - 200px);
-        overflow-y: auto;
-        padding-right: 10px;
-    }
-    .question-list-scroll::-webkit-scrollbar {
-        width: 6px;
-    }
-    .question-list-scroll::-webkit-scrollbar-thumb {
-        background-color: #cbd5e1;
-        border-radius: 10px;
-    }
-    .hover-lift {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border-color: #0d6efd !important;
-    }
-</style>
+    <link rel="stylesheet" href="{% static "quizzes/quizzes.css" %}">
 {% endblock %}
 
 {% block content %}
@@ -83,6 +62,17 @@
                             <div class="col-12">
                                 <label class="form-label fw-bold">Overall Feedback</label>
                                 <textarea class="form-control bg-light" name="overall_feedback" rows="2" placeholder="Shown at the end of the quiz based on grade.">{{ quiz.overall_feedback }}</textarea>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label fw-bold" for="quiz_status">Quiz Status</label>
+                                <select class="form-select bg-light border-dark-subtle" name="status" id="quiz_status" required>
+                                    <option value="0" {% if quiz.status == 0 %}selected{% endif %}>Closed / Draft (Overrides Dates)</option>
+                                    <option value="1" {% if quiz.status == 1 %}selected{% endif %}>Manually Open (Overrides Dates)</option>
+                                    <option value="2" {% if quiz.status == 2 %}selected{% endif %}>Scheduled (Automatic via Dates)</option>
+                                </select>
+                                <div class="form-text text-muted small mt-1">
+                                    <i class="bi bi-info-circle me-1"></i> You cannot select 'Open' or 'Scheduled' unless the quiz has at least one question.
+                                </div>
                             </div>
                         </div>
 

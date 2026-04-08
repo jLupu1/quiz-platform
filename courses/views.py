@@ -44,13 +44,16 @@ def course_detail(request, pk):
     is_admin = request.user.is_admin
     is_enrolled = course.enrollment.filter(id=request.user.id).exists()
 
+    active_quizzes = course.quiz_set.exclude(status=0) #exclude closed quizzes
+    sorted_quizzes = sorted(active_quizzes, key=lambda q: q.is_currently_available, reverse=True)
+#TODO will get marked quizzes and add to context
     if not(is_admin or is_enrolled):
         raise PermissionDenied("You are not enrolled in this module/course")
 
     context = {
         'course': course,
         'default_students': course.enrollment.filter(role=UserRole.STUDENT,is_active=True),
-        'quizzes': course.quiz_set.all(),
+        'upcoming_quizzes': sorted_quizzes,
     }
     # context will need course detail and quizzes
     if request.user.is_teacher or request.user.is_admin:
