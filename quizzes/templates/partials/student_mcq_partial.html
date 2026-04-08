@@ -1,0 +1,21 @@
+{#<div class="d-flex align-items-start gap-4 mb-5">#}
+{#    <h4 class="fw-bold mb-0 mt-1">Q{{ question_number }}</h4>#}
+{#    <div class="flex-grow-1">#}
+{#        <p class="fs-5 text-dark">{{ question.question_text }}</p>#}
+{#    </div>#}
+{#</div>#}
+
+<div class="flex-grow-1 ms-5 ps-3 mb-5">
+    {% for option in quiz_question.question.mcqoption_set.all  %}
+    <div class="form-check mb-3">
+        <input class="form-check-input border-dark-subtle" type="radio" name="mcq_answer" id="option{{ option.id }}" value="{{ option.id }}">
+        <label class="form-check-label text-dark fs-6" for="option{{ option.id }}">
+            {{ option.option_text }}
+        </label>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="d-flex justify-content-end mt-4">
+    <button type="submit" class="btn btn-primary px-4 fw-bold rounded-1 shadow-sm">Save</button>
+</div>

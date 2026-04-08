@@ -1,0 +1,18 @@
+{#<div class="d-flex align-items-start gap-4 mb-4">#}
+{#    <h4 class="fw-bold mb-0 mt-1">Q{{ question_number }}</h4>#}
+{#    <div class="flex-grow-1">#}
+{#        <p class="fs-5 text-dark">{{ question.question_text }}</p>#}
+{#    </div>#}
+{#</div>#}
+
+<div class="mb-3 flex-grow-1">
+    <input type="text" class="form-control rounded-1 border-dark-subtle shadow-sm p-3" name="answer_text" placeholder="Placeholder">
+</div>
+
+<div class="d-flex justify-content-between align-items-end mt-2">
+    <div class="small">
+        <p class="text-dark fw-bold mb-1" style="font-size: 0.85rem;">Word count: <span class="fw-normal" id="word-count">0</span></p>
+        <p class="text-muted mb-0" style="font-size: 0.75rem;">Maximum word count: {{ quiz_question.question.shortanswerquestionoption.maximum_mark }}</p>
+    </div>
+    <button type="submit" class="btn btn-primary px-4 fw-bold rounded-1 shadow-sm">Save</button>
+</div>

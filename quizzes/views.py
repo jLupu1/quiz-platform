@@ -5,17 +5,17 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DetailView
 
 from courses.models import Course
 from quizzes.forms import CreateQuizForm
-from quizzes.models import Quiz, QuizQuestion
+from quizzes.models import Quiz, QuizQuestion, Attempt
 
 
 # Create your views here.
 class CreateQuiz(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     model = Quiz
-    template_name = 'create_quiz.html'
+    template_name = 'manage/create_quiz.html'
     form_class = CreateQuizForm
     success_url = 'create_questions'
 
@@ -38,7 +38,7 @@ class CreateQuiz(LoginRequiredMixin,UserPassesTestMixin,CreateView):
 
 class EditQuiz(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
     model = Quiz
-    template_name = 'edit_quiz.html'
+    template_name = 'manage/edit_quiz.html'
     fields = [
         'name', 'introduction', 'overall_feedback', 'open_date', 'close_date',
         'time_limit', 'maximum_attempts', 'maximum_marks', 'delay_between_attempts',
@@ -78,12 +78,34 @@ def delete_quiz(request, **kwargs):
     return HttpResponse("")
 
 
+class StudentCompleteQuiz(LoginRequiredMixin,UserPassesTestMixin,DetailView):
+    model = Quiz
+    template_name = "student/student_quiz_view.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        attempt,created = Attempt.objects.get_or_create(user=self.request.user, quiz=self.object)
+        # HH:MM:SS
+        context['deadline_time'] = attempt.deadline.isoformat()
+        context['start_time'] = attempt.start_time.isoformat()
+        context['question_list'] = QuizQuestion.objects.filter(quiz=self.object)
+
+        return context
+
+    def test_func(self):
+        return is_student_enrolled(self.request,self.kwargs.get('pk') )
+
 def is_staff_and_enrolled(request,quiz_id):
     if request.user.is_admin:
         return True
+    is_enrolled = user_is_enrolled(request,quiz_id)
+    return is_enrolled and request.user.is_staff_member
+
+def is_student_enrolled(request,quiz_id):
+    is_enrolled = user_is_enrolled(request,quiz_id)
+    return is_enrolled and request.user.is_student
+
+def user_is_enrolled(request,quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     course = get_object_or_404(Course, id=quiz.course_id)
-    is_enrolled = course.enrollment.filter(id=request.user.id).exists()
-    print(is_enrolled)
-    print(request.user.is_staff_member)
-    return is_enrolled and request.user.is_staff_member
+    return course.enrollment.filter(id=request.user.id).exists()

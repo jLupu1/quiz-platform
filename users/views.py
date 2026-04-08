@@ -167,12 +167,12 @@ def error_405(request, exception):
         'exception': str(exception) if exception else ''
     }
     return render(request, 'errors/error_page.html', status=405, context=context)
-def error_500(request,exception):
+
+def error_500(request):
         context = {
             'status_code': 500,
             'error_title': 'Server Error',
             'error_message': "Sorry, something went wrong.",
-            'exception': str(exception) if exception else ''
         }
         return render(request, 'errors/error_page.html', status=500, context=context)
 

@@ -1,0 +1,21 @@
+{#<div class="d-flex align-items-start gap-4 mb-5">#}
+{#    <h4 class="fw-bold mb-0 mt-1">Q{{ question_number }}</h4>#}
+{#    <div class="flex-grow-1">#}
+{#        <p class="fs-5 text-dark">{{ question.question_text }}</p>#}
+{#    </div>#}
+{#</div>#}
+
+<div class="flex-grow-1 d-flex justify-content-center gap-5 mb-5 mt-4">
+    <div class="form-check form-check-inline">
+        <input class="form-check-input border-dark-subtle" type="radio" name="tf_answer" id="true_option" value="True">
+        <label class="form-check-label text-dark fs-5" for="true_option">True</label>
+    </div>
+    <div class="form-check form-check-inline">
+        <input class="form-check-input border-dark-subtle" type="radio" name="tf_answer" id="false_option" value="False">
+        <label class="form-check-label text-dark fs-5" for="false_option">False</label>
+    </div>
+</div>
+
+<div class="d-flex justify-content-end mt-4">
+    <button type="submit" class="btn btn-primary px-4 fw-bold rounded-1 shadow-sm">Save</button>
+</div>

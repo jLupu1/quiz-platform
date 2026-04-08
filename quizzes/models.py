@@ -1,3 +1,6 @@
+from datetime import timedelta
+from django.utils import timezone
+
 from django.db import models
 
 from com3610 import settings
@@ -58,14 +61,25 @@ class QuizQuestion (models.Model):
 
 class Attempt (models.Model):
     # each attempt is linked to one quiz
-    quiz = models.ForeignKey(Quiz, related_name='attempts', on_delete=models.CASCADE)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='attempts', on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='quiz_attempt', on_delete=models.CASCADE)
 
     attempt_count = models.IntegerField(null=True, blank=True, default=0)
     status = models.IntegerField(choices=QuestionStatus.choices(), null=True, blank=True, default=0)
     total_marks_given = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     marked_at = models.DateTimeField(null=True, blank=True)
+
+    start_time = models.DateTimeField(auto_now_add=True)
+    is_completed = models.BooleanField(default=False)
+
+    @property
+    def deadline(self):
+        return self.start_time + timedelta(minutes=float(self.quiz.time_limit))
+
+    @property
+    def is_time_up(self):
+        return timezone.now() > self.deadline
 
 class Response (models.Model):
     question = models.ForeignKey(Quiz, related_name='responses', on_delete=models.CASCADE)
