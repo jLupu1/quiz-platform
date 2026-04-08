@@ -1,4 +1,6 @@
 from datetime import timedelta
+
+from django.db.models import UniqueConstraint, Q
 from django.utils import timezone
 
 from django.db import models
@@ -82,9 +84,29 @@ class Attempt (models.Model):
         return timezone.now() > self.deadline
 
 class Response (models.Model):
-    question = models.ForeignKey(Quiz, related_name='responses', on_delete=models.CASCADE)
-    attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE)
+    question = models.ForeignKey(QuizQuestion, on_delete=models.CASCADE)
+    attempt = models.ForeignKey(Attempt, related_name='responses' ,on_delete=models.CASCADE)
 
     status = models.IntegerField(choices=QuestionStatus.choices(), null=True, blank=True, default=0)
-    answer_given = models.CharField(null=True, blank=True)
+    answer_given = models.TextField(null=True, blank=True) #if the question required text answer
     marks_given = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    class Meta:
+        #student can only have ONE answer per question per attempt
+        unique_together = ('attempt', 'question')
+
+class ResponseOption(models.Model):
+    """For MCQ/EO question response - skipped if question is text only, just store the id of the options chosen"""
+    response = models.ForeignKey(Response,related_name='selected_options', on_delete=models.CASCADE)
+    mcq_option = models.ForeignKey('questions.McqOption', on_delete=models.CASCADE, null=True, blank=True)
+    eo_option = models.ForeignKey('questions.EitherOrOption', on_delete=models.CASCADE, null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            # blocks the db from saving a second EO option for the same response
+            UniqueConstraint(
+                fields=['response'],
+                condition=Q(eo_option__isnull=False),
+                name='unique_eo_per_response'
+            )
+        ]

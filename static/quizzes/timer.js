@@ -23,8 +23,12 @@ document.addEventListener("DOMContentLoaded", function() {
             timerDisplay.innerHTML = '<i class="bi bi-clock me-2 fs-3 text-danger"></i> <span class="text-danger">00:00</span>';
             timerDisplay.classList.add('flash-animation');
 
-            alert("Time is up!");
-            // TODO autosubmit
+            alert("Time is up! Your quiz is being automatically submitted.");
+
+            const submitForm = document.getElementById('auto-submit-form');
+            if (submitForm) {
+                submitForm.submit();
+            }
             return;
         }
 
@@ -42,7 +46,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         progressBar.style.width = `${percentage}%`;
 
-        progressBar.setAttribute('aria-valuenow', percentage);
+        progressBar.setAttribute('aria-valuenow', toString(percentage));
 
         if (percentage < 25) {
             progressBar.classList.remove('bg-success');
