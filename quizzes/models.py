@@ -83,12 +83,7 @@ class Quiz (models.Model):
 
         # Rule 4: Automatic / Scheduled
         if self.status == self.QuizStatus.SCHEDULED:
-            print("set to SCHEDULED")
-            print(f"OPEN DATE: {self.open_date}")
-            print(f"CLOSE DATE: {self.close_date}")
             now = timezone.now()
-            print(f"SERVER NOW: {now}")
-
 
             if self.open_date and self.close_date:
                 print("true one")
