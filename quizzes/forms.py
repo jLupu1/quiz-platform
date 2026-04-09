@@ -8,7 +8,7 @@ class CreateQuizForm(forms.ModelForm):
     class Meta:
         model = Quiz
 
-        fields = ['name', 'introduction', 'open_date', 'close_date', 'time_limit', 'maximum_marks',
+        fields = ['name', 'introduction', 'open_date', 'close_date', 'time_limit',
                   'maximum_attempts', 'delay_between_attempts', 'shuffle_questions', 'shuffle_answers',
                   'review_attempt', 'review_right_answer', 'review_marks', 'review_specific_feedback',
                   'review_general_feedback', 'review_overall_feedback', 'show_user_picture', 'anonymise_student',

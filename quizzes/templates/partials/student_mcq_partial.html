@@ -18,9 +18,7 @@
         {% for option in quiz_question.question.mcqoption_set.all %}
         <div class="form-check mb-3">
             <input class="form-check-input border-dark-subtle shadow-sm" 
-                   type="{% if quiz_question.question.mcq_option_set.all.first.isMultipleAnswers %}
-                   checkbox{% else %}
-                   radio{% endif %}"
+                   type="{% if option.isMultipleAnswers %}checkbox{% else %}radio{% endif %}"
                    name="mcq_answer" 
                    id="option{{ option.id }}" 
                    value="{{ option.id }}"

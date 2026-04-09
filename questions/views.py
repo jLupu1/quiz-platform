@@ -8,7 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView, ListView, UpdateView
 from courses.models import Course
 from questions.models import Question, McqOption, ShortAnswerQuestionOption, EssayQuestionOption, EitherOrOption, \
-    TextFiller
+    TextFiller, QuestionType
 from quizzes.models import Quiz, QuizQuestion
 from users.models import UserRole
 from django.core.exceptions import PermissionDenied
@@ -48,21 +48,20 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
 
             question_type = self.request.POST.get('question_type')
 
-            # Due to how question types are set up using enums and frontend limitations
             # MCQ
-            if question_type == '0':
+            if question_type == QuestionType.MCQ:
                 create_mcq_question(self.request, question)
 
             # Either/Or
-            elif question_type == '1':
+            elif question_type == QuestionType.EITHER_OR:
                 create_eo_option(self.request,question)
 
             # Short Answer
-            elif question_type == '2':
+            elif question_type == QuestionType.SHORT_ANSWER:
                 create_sa_question(self.request, question)
 
             # Essay
-            elif question_type == '3':
+            elif question_type == QuestionType.ESSAY_QUESTION:
                 create_essay_question(self.request, question)
 
             # Text Filler
@@ -72,7 +71,7 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
 
             else:
                 raise ValueError("Invalid question type submitted.")
-
+        quiz.recalculate_maximum_marks()
         return super().form_valid(form)
 
 
@@ -214,6 +213,7 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 tf_opt.negative_mark = self.request.POST.get('tf_negative_mark') or 0
                 tf_opt.save()
 
+        quiz_question.quiz.recalculate_maximum_marks()
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -316,7 +316,6 @@ def is_staff_and_enrolled(request,kwargs):
         return True
     else:
         quiz = None
-        # 1. Safely extract the Quiz based on whatever ID the URL provided
         if kwargs.get('quiz_id'):
             quiz = get_object_or_404(Quiz, id=kwargs.get('quiz_id'))
         elif kwargs.get('pk'):
