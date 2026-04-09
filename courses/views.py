@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic import CreateView, ListView, UpdateView
 from courses.forms import CourseCreationForm
 from courses.models import Course
@@ -40,25 +41,29 @@ class CourseCreateView(LoginRequiredMixin,UserPassesTestMixin, CreateView):
 @login_required(login_url='/users/login')
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk)
+    teachers = course.enrollment.filter(role=UserRole.TEACHER,is_active=True)
 
     is_admin = request.user.is_admin
     is_enrolled = course.enrollment.filter(id=request.user.id).exists()
 
-    active_quizzes = course.quiz_set.exclude(status=0) #exclude closed quizzes
-    sorted_active_quizzes = sorted(active_quizzes, key=lambda q: q.is_currently_available, reverse=True)
+    all_quizzes = course.quiz_set.all()
 
-    closed_quizzes = course.quiz_set.filter(status=0)
-    print(closed_quizzes)
+    # gets active and upcoming quizzes.
+    active_quizzes = [quiz for quiz in all_quizzes if quiz.is_currently_available
+                      or (quiz.open_date and quiz.open_date > timezone.now())]
+    closed_quizzes = [quiz for quiz in all_quizzes if not quiz.is_currently_available]
 
-#TODO will get marked quizzes and add to context
+    active_quizzes = sorted(active_quizzes, key=lambda q: q.close_date or timezone.now())
+
     if not(is_admin or is_enrolled):
         raise PermissionDenied("You are not enrolled in this module/course")
 
     context = {
         'course': course,
         'default_students': course.enrollment.filter(role=UserRole.STUDENT,is_active=True),
-        'upcoming_quizzes': sorted_active_quizzes,
+        'upcoming_quizzes': active_quizzes,
         'closed_quizzes': closed_quizzes,
+        'teachers': teachers,
     }
     # context will need course detail and quizzes
     if request.user.is_teacher or request.user.is_admin:

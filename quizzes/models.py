@@ -64,8 +64,10 @@ class Quiz (models.Model):
 
     @property
     def is_currently_available(self):
-        """This evaluates all your business rules in real-time."""
+        """This evaluates all rules in real-time."""
 
+        if self.close_date and timezone.now() > self.close_date:
+            return False
         #no qs?
         if not self.quizquestion_set.exists():
             return False
