@@ -14,7 +14,12 @@ urlpatterns = [
     path('attempt/<int:attempt_id>/results/', views.quiz_results, name='quiz_results'),
 
     # Review Quiz
-    path('quiz/<int:quiz_id>/history/',views.quiz_history, name='quiz_history'),
+    path('quiz/<int:quiz_id>/history/<int:user_id>/',views.quiz_history, name='quiz_history'),
     path('quiz/<int:quiz_id>/review/<int:attempt_id>/',views.review_attempt, name='review_attempt'),
     path('attempt/<int:attempt_id>/review/question/<int:quiz_question_id>/', views.review_response, name='review_response'),
+
+#  Teacher REview
+    path('quiz/<int:quiz_id>/teacher/user-attempts',views.teacher_student_attempt_list,name='teacher_student_attempt_list'),
+    path('quiz/<int:quiz_id>/teacher/user-attempts/search-user', views.search_quiz_students, name='search_quiz_students'),
+
 ]

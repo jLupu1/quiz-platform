@@ -50,7 +50,7 @@
                                 Cancel
                             </a>
 
-                        <a href="{% url 'quiz_history' quiz.id %}" class="btn btn-outline-secondary btn-lg px-4 rounded-2 shadow-sm d-flex justify-content-center align-items-center">
+                        <a href="{% url 'quiz_history' quiz.id request.user.id %}" class="btn btn-outline-secondary btn-lg px-4 rounded-2 shadow-sm d-flex justify-content-center align-items-center">
                             <i class="bi bi-clock-history me-2"></i> View Past Attempts
                         </a>
                         </form>

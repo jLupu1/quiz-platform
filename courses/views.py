@@ -48,6 +48,7 @@ def course_detail(request, pk):
     sorted_active_quizzes = sorted(active_quizzes, key=lambda q: q.is_currently_available, reverse=True)
 
     closed_quizzes = course.quiz_set.filter(status=0)
+    print(closed_quizzes)
 
 #TODO will get marked quizzes and add to context
     if not(is_admin or is_enrolled):
@@ -66,6 +67,7 @@ def course_detail(request, pk):
         return render(request, 'courses/course_detail_student.html', context)
 
 @login_required(login_url='/users/login')
+@user_passes_test(lambda user: user.is_staff_member)
 def search_course_students(request,pk):
     # returns 404 if not found
     course = get_object_or_404(Course, pk=pk)

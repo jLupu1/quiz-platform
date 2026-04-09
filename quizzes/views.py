@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -13,6 +14,7 @@ from courses.models import Course
 from questions.models import McqOption, EitherOrOption, QuestionType, Question
 from quizzes.forms import CreateQuizForm
 from quizzes.models import Quiz, QuizQuestion, Attempt, Response, ResponseOption
+from users.models import User, UserRole
 
 
 # Create your views here.
@@ -300,11 +302,21 @@ def quiz_results(request, attempt_id):
     return render(request, 'student/quiz_results.html', context)
 #     this will get all the attempts and allow user to review it
 
-# TODO restrictions
-def quiz_history(request, quiz_id):
+@login_required(login_url='/users/login/')
+def quiz_history(request, quiz_id, user_id):
+    user = request.user
+
+    # TODO AUTO TEST
+    is_snooping_student = user.is_student and user.id != user_id
+    is_enrolled = is_staff_and_enrolled(request, quiz_id) or is_student_enrolled(request, quiz_id)
+
+    if is_snooping_student or (not user.is_admin and not is_enrolled):
+    # protects against students putting other user.id in search
+        raise PermissionDenied("You are not allowed to view other's attempt history")
+
     quiz = get_object_or_404(Quiz, id=quiz_id)
-    attempts = Attempt.objects.filter(user=request.user, quiz=quiz, is_completed=True).order_by('-submitted_at')
-    print(attempts)
+    user = get_object_or_404(User, id=user_id)
+    attempts = Attempt.objects.filter(user=user, quiz=quiz, is_completed=True).order_by('-submitted_at')
 
     context = {
         'attempts': attempts,
@@ -318,11 +330,11 @@ def review_attempt(request, attempt_id,quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
 
     # Broke down in the context to make it easier and more readable in template
-    context = {'attempt': attempt, 'quiz': quiz}
+    context = {'attempt': attempt, 'quiz': quiz, 'user_id':attempt.user.id}
 
     return render(request, 'student/review_attempt.html', context)
 
-
+@login_required(login_url='/users/login/')
 def review_response(request, attempt_id, quiz_question_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
 
@@ -356,6 +368,36 @@ def review_response(request, attempt_id, quiz_question_id):
         return HttpResponse("Question type not supported.")
 
     return render(request, template_name, context)
+
+
+@login_required(login_url='/users/login/')
+def teacher_student_attempt_list(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    context = {'quiz': quiz,
+               'users':quiz.course.enrollment.filter(role=UserRole.STUDENT,is_active=True),}
+
+    return render(request,'teacher/teacher_student_attempt_list.html',context=context)
+
+@login_required(login_url='/users/login')
+@user_passes_test(lambda user: user.is_staff_member)
+def search_quiz_students(request,quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    course = get_object_or_404(Course, id=quiz.course_id)
+    search_text = request.GET.get('search', '')
+
+    students = course.enrollment.filter(role=UserRole.STUDENT,is_active=True)
+    if quiz.anonymise_student:
+        search_text = ''
+    # Filters out based on what I searched for in the text box
+    if search_text:
+        students = students.filter(
+            Q(first_name__icontains=search_text) |
+            Q(last_name__icontains=search_text) |
+            Q(username__icontains=search_text)
+        )
+
+    context = {'quiz': quiz, 'users':students}
+    return render(request, 'partials/teacher/teacher_student_attempt_list_partial.html', context)
 
 # ---------- HELPER FUNCTIONS ----------
 def is_staff_and_enrolled(request,quiz_id):

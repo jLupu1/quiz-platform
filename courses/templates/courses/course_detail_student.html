@@ -65,7 +65,7 @@
                                         </p>
                                     </div>
 
-                                    <a href="{% url 'quiz_history' quiz.id %}" class="btn btn-sm btn-outline-success px-4 rounded-1">Review</a>
+                                    <a href="{% url 'quiz_history' quiz.id request.user.id %}" class="btn btn-sm btn-outline-success px-4 rounded-1">Review</a>
                                 </div>
                             </div>
 

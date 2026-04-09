@@ -5,9 +5,16 @@
     
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
+            {% if request.user.is_staff_member %}
+                <a href="{% url 'teacher_student_attempt_list' quiz.id %}" class="text-decoration-none text-muted mb-2 d-inline-block">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Users
+                </a>
+            {% else %}
             <a href="{% url 'course_detail' quiz.course_id %}" class="text-decoration-none text-muted mb-2 d-inline-block">
                 <i class="bi bi-arrow-left me-1"></i> Back to Course
             </a>
+            {% endif %}
+
             <h2 class="display-6 fw-bold mb-0">Attempt History</h2>
             <p class="text-muted fs-5">{{ quiz.title }}</p>
         </div>
