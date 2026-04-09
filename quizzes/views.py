@@ -11,7 +11,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import CreateView, UpdateView, TemplateView
 
 from courses.models import Course
-from questions.models import McqOption, EitherOrOption, QuestionType, Question
+from questions.models import QuestionType
 from quizzes.forms import CreateQuizForm
 from quizzes.models import Quiz, QuizQuestion, Attempt, Response, ResponseOption
 from users.models import User, UserRole
@@ -25,7 +25,7 @@ class CreateQuiz(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     success_url = 'create_questions'
 
     def test_func(self):
-        return self.request.user.is_admin or self.request.user.is_teacher
+        return is_staff_and_enrolled(self.request, self.kwargs['course_id'],id_type='course')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
@@ -67,7 +67,6 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Using .prefetch_related or just querying the reverse relationship
         context['questions'] = self.object.quizquestion_set.all()
         return context
 
@@ -76,7 +75,6 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        # Check if our custom rule for the 'status' field was triggered
         if 'status' in form.errors:
             messages.error(self.request, form.errors['status'][0])
         elif 'close_date' in form.errors:
@@ -87,7 +85,6 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_invalid(form)
 
     def get_success_url(self):
-        # Make sure 'edit_quiz' matches exactly what is in your urls.py!
         return reverse('edit-quiz', kwargs={'pk': self.object.pk})
 
 @login_required(login_url='/users/login/')
@@ -104,6 +101,8 @@ def delete_quiz(request, **kwargs):
 @login_required(login_url='/users/login/')
 @user_passes_test(lambda u: u.is_student, login_url='/users/login/')
 def quiz_landing_page(request, quiz_id):
+    if not is_student_enrolled(request,quiz_id):
+        raise PermissionDenied("You can't take this quiz as you are not enrolled in this module/course")
     quiz = get_object_or_404(Quiz, pk=quiz_id)
 
     if not quiz.is_currently_available:
@@ -251,7 +250,7 @@ def question_engine(request, attempt_id, question_id):
 
     question_enum_name = QuestionType(quiz_question.question.question_type).name
     # TODO create a default blank or smth partial like a smth went wrong oops
-    template_name = template_map.get(question_enum_name, 'partials/student_essay.html')
+    template_name = template_map.get(question_enum_name, 'partials/something_went_wrong.html')
     return render(request, template_name, context)
 
 @login_required(login_url='/users/login/')
@@ -259,6 +258,8 @@ def question_engine(request, attempt_id, question_id):
 @require_POST
 def submit_quiz(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
+    if not is_student_enrolled(request,attempt.quiz_id ):
+        raise PermissionDenied('You are not enrolled to this course')
 
     # prevent double-submission
     if attempt.is_completed:
@@ -270,7 +271,7 @@ def submit_quiz(request, attempt_id):
     attempt.save()
     attempt.grade_attempt()
 
-    # send them to the results/celebration page
+    # send them to the results page
     messages.success(request, "Quiz submitted successfully!")
     return redirect('quiz_results', attempt_id=attempt.id)
 
@@ -328,6 +329,19 @@ def quiz_history(request, quiz_id, user_id):
 def review_attempt(request, attempt_id,quiz_id):
     attempt = get_object_or_404(Attempt,id=attempt_id)
     quiz = get_object_or_404(Quiz, id=quiz_id)
+    user = request.user
+
+    # stops from student seeing other student
+    is_snooping_student = user.is_student and user.id != attempt.user_id
+
+    is_enrolled = is_staff_and_enrolled(request, quiz_id) or is_student_enrolled(request, quiz_id)
+
+    if is_snooping_student:
+    # protects against students putting other user.id in search
+        raise PermissionDenied("You are not allowed to view other's attempt history")
+    elif not (user.is_admin or is_enrolled):
+        raise PermissionDenied("You are not allowed to view an attempt to a quiz belonging to a course you are not enrolled in")
+
 
     # Broke down in the context to make it easier and more readable in template
     context = {'attempt': attempt, 'quiz': quiz, 'user_id':attempt.user.id}
@@ -337,8 +351,20 @@ def review_attempt(request, attempt_id,quiz_id):
 @login_required(login_url='/users/login/')
 def review_response(request, attempt_id, quiz_question_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
-
     response = attempt.responses.filter(quiz_question_id=quiz_question_id).first()
+    user = request.user
+
+    # stops from student seeing other student
+    is_snooping_student = user.is_student and user.id != attempt.user_id
+
+    is_enrolled = is_staff_and_enrolled(request, attempt.quiz_id) or is_student_enrolled(request, attempt.quiz_id)
+
+    if is_snooping_student:
+        # protects against students putting other user.id in search
+        raise PermissionDenied("You are not allowed to view other's attempt history")
+    elif not (user.is_admin or is_enrolled):
+        raise PermissionDenied(
+            "You are not allowed to view an attempt to a quiz belonging to a course you are not enrolled in")
 
     if not response:
         return HttpResponse("<div class='alert alert-danger'>Response not found.</div>")
@@ -371,7 +397,12 @@ def review_response(request, attempt_id, quiz_question_id):
 
 
 @login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_staff_member)
 def teacher_student_attempt_list(request, quiz_id):
+    if not is_staff_and_enrolled(request, quiz_id):
+        raise PermissionDenied(
+            "You are not allowed to view this attempt history as you are not a teacher enrolled in this course")
+
     quiz = get_object_or_404(Quiz, id=quiz_id)
     context = {'quiz': quiz,
                'users':quiz.course.enrollment.filter(role=UserRole.STUDENT,is_active=True),}
@@ -400,17 +431,20 @@ def search_quiz_students(request,quiz_id):
     return render(request, 'partials/teacher/teacher_student_attempt_list_partial.html', context)
 
 # ---------- HELPER FUNCTIONS ----------
-def is_staff_and_enrolled(request,quiz_id):
+def is_staff_and_enrolled(request,quiz_id,id_type='quiz'):
     if request.user.is_admin:
         return True
-    is_enrolled = user_is_enrolled(request,quiz_id)
+    is_enrolled = user_is_enrolled(request,quiz_id,id_type)
     return is_enrolled and request.user.is_staff_member
 
 def is_student_enrolled(request,quiz_id):
     is_enrolled = user_is_enrolled(request,quiz_id)
     return is_enrolled and request.user.is_student
 
-def user_is_enrolled(request,quiz_id):
-    quiz = get_object_or_404(Quiz, id=quiz_id)
-    course = get_object_or_404(Course, id=quiz.course_id)
+def user_is_enrolled(request, quiz_or_course_id, id_type='quiz'):
+    if id_type == 'quiz':
+        quiz = get_object_or_404(Quiz, id=quiz_or_course_id)
+        course = get_object_or_404(Course, id=quiz.course_id)
+    else:
+        course = get_object_or_404(Course, id=quiz_or_course_id)
     return course.enrollment.filter(id=request.user.id).exists()
