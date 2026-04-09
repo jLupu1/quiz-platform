@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseForbidden
@@ -50,7 +50,6 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Quiz
     template_name = 'manage/edit_quiz.html'
 
-    # It is usually safer to define these in a forms.py file, but this works perfectly!
     fields = [
         'name', 'introduction', 'overall_feedback', 'open_date', 'close_date', 'status',
         'time_limit', 'maximum_attempts', 'maximum_marks', 'delay_between_attempts',
@@ -134,7 +133,8 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return self.render_to_response(context)
 
-# TODO restrictions
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_student, login_url='/users/login/')
 def quiz_landing_page(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
 
@@ -174,7 +174,8 @@ def quiz_landing_page(request, quiz_id):
     }
     return render(request, 'student/quiz_landing_page.html', context)
 
-# TODO restrictions
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_student, login_url='/users/login/')
 def question_engine(request, attempt_id, question_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
     quiz_question = get_object_or_404(QuizQuestion, id=question_id, quiz=attempt.quiz)
@@ -239,7 +240,6 @@ def question_engine(request, attempt_id, question_id):
         'current_question_number': current_question_number,
     }
 
-    # Assuming quiz_question.question.question_type exists (e.g., 'ESSAY', 'MCQ', 'TF')
     template_map = {
         QuestionType.ESSAY_QUESTION.name: 'partials/student_essay_partial.html',
         QuestionType.SHORT_ANSWER.name: 'partials/student_sa_partial.html',
@@ -247,35 +247,32 @@ def question_engine(request, attempt_id, question_id):
         QuestionType.EITHER_OR.name: 'partials/student_eo_partial.html'
     }
 
-    # Convert the integer to the Enum, grab the name, and look it up!
     question_enum_name = QuestionType(quiz_question.question.question_type).name
     # TODO create a default blank or smth partial like a smth went wrong oops
     template_name = template_map.get(question_enum_name, 'partials/student_essay.html')
     return render(request, template_name, context)
 
-# TODO Restrictions
-@login_required
-@require_POST  # Security: Forces this view to ONLY accept POST requests
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_student, login_url='/users/login/')
+@require_POST
 def submit_quiz(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
 
-    # 1. Prevent double-submission
+    # prevent double-submission
     if attempt.is_completed:
         messages.info(request, "This quiz attempt has already been submitted.")
         return redirect('quiz_results', attempt_id=attempt.id)
 
-    # 2. Lock it down!
     attempt.is_completed = True
     attempt.save()
     attempt.grade_attempt()
 
-    # 3. Send them to the results/celebration page
+    # send them to the results/celebration page
     messages.success(request, "Quiz submitted successfully!")
     return redirect('quiz_results', attempt_id=attempt.id)
 
-# TODO Restrictions
-
-@login_required
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_student, login_url='/users/login/')
 def quiz_results(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
 
