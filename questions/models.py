@@ -26,6 +26,26 @@ class Question (models.Model):
         # Returns the color, or defaults to secondary if something goes wrong
         return colors.get(self.question_type, 'bg-secondary text-white')
 
+    def calc_question_max_mark(self):
+        """Calculates the maximum mark value for given question type."""
+        total = 0
+        if self.question_type == QuestionType.MCQ:
+            options = self.mcqoption_set.all()
+            for option in options:
+                total += option.maximum_mark
+            return total
+        elif self.question_type == QuestionType.EITHER_OR:
+            options = self.eitheroroption_set.all()
+            for option in options:
+                total += option.maximum_mark
+            return total
+        elif self.question_type == QuestionType.SHORT_ANSWER:
+            return self.shortanswerquestionoption.maximum_mark
+        elif self.question_type == QuestionType.ESSAY_QUESTION:
+            return self.essayquestionoption.maximum_mark
+        else:
+            return False
+
 class McqOption(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
     option_text = models.CharField(null=True, blank=True)

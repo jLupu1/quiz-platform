@@ -49,6 +49,10 @@
                             <a href="{% url 'course_detail' quiz.course_id %}" class="btn btn-outline-secondary btn-lg rounded-2 px-5 py-3 fw-bold w-100 text-center">
                                 Cancel
                             </a>
+
+                        <a href="{% url 'quiz_history' quiz.id %}" class="btn btn-outline-secondary btn-lg px-4 rounded-2 shadow-sm d-flex justify-content-center align-items-center">
+                            <i class="bi bi-clock-history me-2"></i> View Past Attempts
+                        </a>
                         </form>
                     </div>
                 </div>

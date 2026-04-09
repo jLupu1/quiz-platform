@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %} Complete Quiz {% endblock %}
+{% block title %} Take Quiz {% endblock %}
 
 {% block extra_css %}
 <script src="{% static 'quizzes/timer.js' %}"></script>
@@ -73,7 +73,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     {{ deadline_time|json_script:"quiz-deadline" }}

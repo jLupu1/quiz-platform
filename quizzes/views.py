@@ -5,11 +5,12 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import CreateView, UpdateView, TemplateView
 
 from courses.models import Course
-from questions.models import McqOption, EitherOrOption, QuestionType
+from questions.models import McqOption, EitherOrOption, QuestionType, Question
 from quizzes.forms import CreateQuizForm
 from quizzes.models import Quiz, QuizQuestion, Attempt, Response, ResponseOption
 
@@ -98,41 +99,6 @@ def delete_quiz(request, **kwargs):
     quiz.delete()
 
     return HttpResponse("")
-
-
-class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    template_name = "student/student_quiz_view.html"
-
-    def test_func(self):
-        attempt_id = self.kwargs.get('attempt_id')
-        attempt = get_object_or_404(Attempt, id=attempt_id)
-
-        return is_student_enrolled(self.request, attempt.quiz.id)
-
-    def get(self, request, *args, **kwargs):
-        attempt = get_object_or_404(Attempt, id=self.kwargs['attempt_id'], user=self.request.user)
-
-        if not attempt.quiz.is_currently_available:
-            messages.error(request, "This quiz has been closed.")
-            return redirect('course_detail', course_id=attempt.quiz.course_id)
-
-        if attempt.is_completed or attempt.is_time_up:
-            return redirect('quiz_landing', quiz_id=attempt.quiz.id)
-
-        context = self.get_context_data(**kwargs)
-        context['attempt'] = attempt
-        context['deadline_time'] = attempt.deadline.isoformat()
-        context['start_time'] = attempt.start_time.isoformat()
-
-         # TODO shuffle the list ...
-        context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
-        context['first_question'] = context['question_list'].first()
-
-        answered_ids = attempt.responses.values_list('quiz_question_id', flat=True)
-        context['answered_question_ids'] = list(answered_ids)
-
-        return self.render_to_response(context)
-
 @login_required(login_url='/users/login/')
 @user_passes_test(lambda u: u.is_student, login_url='/users/login/')
 def quiz_landing_page(request, quiz_id):
@@ -173,6 +139,40 @@ def quiz_landing_page(request, quiz_id):
         'attempts_left' : quiz.maximum_attempts - attempt_count if quiz.maximum_attempts != -1 else 'Unlimited',
     }
     return render(request, 'student/quiz_landing_page.html', context)
+
+class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = "student/student_quiz_view.html"
+
+    def test_func(self):
+        attempt_id = self.kwargs.get('attempt_id')
+        attempt = get_object_or_404(Attempt, id=attempt_id)
+
+        return is_student_enrolled(self.request, attempt.quiz.id)
+
+    def get(self, request, *args, **kwargs):
+        attempt = get_object_or_404(Attempt, id=self.kwargs['attempt_id'], user=self.request.user)
+
+        if not attempt.quiz.is_currently_available:
+            messages.error(request, "This quiz has been closed.")
+            return redirect('course_detail', course_id=attempt.quiz.course_id)
+
+        if attempt.is_completed or attempt.is_time_up:
+            return redirect('quiz_landing', quiz_id=attempt.quiz.id)
+
+        context = self.get_context_data(**kwargs)
+        context['attempt'] = attempt
+        context['deadline_time'] = attempt.deadline.isoformat()
+        context['start_time'] = attempt.start_time.isoformat()
+
+         # TODO shuffle the list ...
+        context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
+        context['first_question'] = context['question_list'].first()
+
+        answered_ids = attempt.responses.values_list('quiz_question_id', flat=True)
+        context['answered_question_ids'] = list(answered_ids)
+
+        return self.render_to_response(context)
+
 
 @login_required(login_url='/users/login/')
 @user_passes_test(lambda u: u.is_student, login_url='/users/login/')
@@ -264,6 +264,7 @@ def submit_quiz(request, attempt_id):
         return redirect('quiz_results', attempt_id=attempt.id)
 
     attempt.is_completed = True
+    attempt.submitted_at = timezone.now()
     attempt.save()
     attempt.grade_attempt()
 
@@ -297,8 +298,66 @@ def quiz_results(request, attempt_id):
     }
 
     return render(request, 'student/quiz_results.html', context)
+#     this will get all the attempts and allow user to review it
+
+# TODO restrictions
+def quiz_history(request, quiz_id):
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+    attempts = Attempt.objects.filter(user=request.user, quiz=quiz, is_completed=True).order_by('-submitted_at')
+    print(attempts)
+
+    context = {
+        'attempts': attempts,
+        'quiz':quiz ,
+    }
+    return render(request, 'student/quiz_history.html', context)
+
+@login_required(login_url='/users/login/')
+def review_attempt(request, attempt_id,quiz_id):
+    attempt = get_object_or_404(Attempt,id=attempt_id)
+    quiz = get_object_or_404(Quiz, id=quiz_id)
+
+    # Broke down in the context to make it easier and more readable in template
+    context = {'attempt': attempt, 'quiz': quiz}
+
+    return render(request, 'student/review_attempt.html', context)
 
 
+def review_response(request, attempt_id, quiz_question_id):
+    attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
+
+    response = attempt.responses.filter(quiz_question_id=quiz_question_id).first()
+
+    if not response:
+        return HttpResponse("<div class='alert alert-danger'>Response not found.</div>")
+
+    question_type = response.quiz_question.question.question_type
+
+    context = {
+        'response': response,
+        'quiz': attempt.quiz,
+    }
+
+    if question_type in [QuestionType.MCQ, QuestionType.EITHER_OR]:
+        if question_type == QuestionType.MCQ:
+            context['user_selected_option_ids'] = response.selected_options.values_list('mcq_option_id', flat=True)
+        else:
+            context['user_selected_option_ids'] = response.selected_options.values_list('eo_option_id', flat=True)
+
+    if question_type == QuestionType.MCQ:
+        template_name = 'partials/review/review_mcq_partial.html'
+    elif question_type == QuestionType.EITHER_OR:
+        template_name = 'partials/review/review_eo_partial.html'
+    elif question_type == QuestionType.SHORT_ANSWER:
+        template_name = 'partials/review/review_sa_partial.html'
+    elif question_type == QuestionType.ESSAY_QUESTION:
+        template_name = 'partials/review/review_essay_partial.html'
+    else:
+        return HttpResponse("Question type not supported.")
+
+    return render(request, template_name, context)
+
+# ---------- HELPER FUNCTIONS ----------
 def is_staff_and_enrolled(request,quiz_id):
     if request.user.is_admin:
         return True

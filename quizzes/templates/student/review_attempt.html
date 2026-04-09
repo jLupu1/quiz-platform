@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5" style="max-width: 1600px;">
+
+    <div class="row mb-4 align-items-end">
+        <div class="col-md-6">
+            <h2 class="display-6 fw-bold mb-3 text-dark">Review Attempt</h2>
+
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-secondary fs-5 px-4 py-2 rounded-pill shadow-sm">
+                    Attempt {{ attempt.attempt_count|default:"1" }}
+                </span>
+                <a href="{% url 'quiz_history' quiz.id %}" class="btn btn-outline-secondary rounded-2 px-4">
+                    <i class="bi bi-arrow-left me-1"></i> Back to attempts
+                </a>
+            </div>
+        </div>
+
+        <div class="col-md-6 d-flex justify-content-md-end mt-4 mt-md-0">
+            {% if quiz.review_marks %}
+            <div class="card border-dark shadow-sm" style="min-width: 200px;">
+                <div class="card-header bg-dark text-white text-center py-2">
+                    <span class="small fw-bold text-uppercase tracking-wide">Total Marks Awarded</span>
+                </div>
+                <div class="card-body text-center py-3">
+                    <h2 class="display-5 fw-bold mb-0">
+                        {{ attempt.total_marks_given|default:"0" }}<span class="text-muted fs-4">/{{ quiz.maximum_marks }}</span>
+                    </h2>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr class="mb-5 text-muted">
+
+    <div class="row g-4">
+
+        <div class="col-lg-2">
+            <div class="card border-dark-subtle shadow-sm sticky-top" style="top: 2rem;">
+                <div class="card-header bg-light border-bottom border-dark-subtle py-3">
+                    <h5 class="fw-bold mb-0 text-center">Questions</h5>
+                </div>
+                <div class="card-body py-4">
+                    <div class="d-flex flex-column align-items-center gap-3">
+
+                        {% for resp in attempt.responses.all|dictsort:"quiz_question.order_sequence" %}
+                            <button class="btn fw-bold p-0 shadow-sm
+                                           {% if resp.marks_given > 0 %}btn-success
+                                           {% elif resp.marks_given == 0 %}btn-danger
+                                           {% else %}btn-warning{% endif %}"
+                                    style="width: 45px; height: 45px; line-height: 43px;"
+                                    hx-get="{% url 'review_response' attempt.id resp.quiz_question.id %}"
+                                    hx-target="#center-review-container"
+                                    hx-swap="innerHTML"
+                                    {% if resp.is_skipped %}data-bs-toggle="tooltip" title="Skipped"{% endif %}>
+                                {{ resp.quiz_question.order_sequence }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7 d-flex flex-column" style="min-height: 400px;">
+
+            <div id="center-review-container" class="flex-grow-1">
+
+                {% with response=attempt.responses.first %}
+                    {% if response %}
+                        {% if response.quiz_question.question.question_type == 0 %}
+                            {% include 'partials/review/review_mcq_partial.html' %}
+                        {% elif response.quiz_question.question.question_type == 1 %}
+                            {% include 'partials/review/review_eo_partial.html' %}
+                        {% elif response.quiz_question.question.question_type == 2 %}
+                            {% include 'partials/review/review_sa_partial.html' %}
+                        {% elif response.quiz_question.question.question_type == 3 %}
+                            {% include 'partials/review/review_essay_partial.html' %}
+                        {% endif %}
+                    {% else %}
+                        <h5 class="fw-bold text-center text-danger">No questions have been answered or no responses were found</h5>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            {% if quiz.review_overall_feedback and quiz.overall_feedback %}
+            <div class="card border-dark shadow-sm sticky-top" style="top: 2rem;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-center mb-4 border-bottom pb-2">Overall Feedback</h5>
+                    <p class="text-muted" style="line-height: 1.6;">
+                        {{ quiz.overall_feedback }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+{% endblock %}

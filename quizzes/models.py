@@ -28,7 +28,7 @@ class Quiz (models.Model):
     overall_feedback = models.TextField(null=True, blank=True)
     shuffle_questions = models.BooleanField(default=False)
     shuffle_answers = models.BooleanField(default=False)
-    maximum_marks = models.DecimalField(max_digits=10, decimal_places=2)
+    maximum_marks = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     # Blank means no restrictions
     open_date = models.DateTimeField(null=True, blank=True)
@@ -83,7 +83,6 @@ class Quiz (models.Model):
             now = timezone.now()
 
             if self.open_date and self.close_date:
-                print("true one")
                 if self.open_date <= now <= self.close_date:
                     return True
             elif self.open_date and not self.close_date:
@@ -95,7 +94,6 @@ class Quiz (models.Model):
             else:
                 # if there is no open or close time but set on automatic open the quiz
                 return True
-            print("false>")
         return False
 
     def clean(self):
@@ -172,6 +170,7 @@ class Attempt (models.Model):
     status = models.IntegerField(choices=QuestionStatus.choices(), null=True, blank=True, default=0)
     total_marks_given = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
     marked_at = models.DateTimeField(null=True, blank=True)
 
     start_time = models.DateTimeField(auto_now_add=True)
@@ -248,6 +247,7 @@ class Response (models.Model):
                     self.marks_given = chosen_option.maximum_mark
                 else:
                     self.marks_given = -chosen_option.negative_mark
+                self.marks_given = max(0, int(self.marks_given))
 
         elif question.question_type == QuestionType.EITHER_OR:
             chosen_option = question.eitheroroption_set.filter(id=selected.eo_option_id).first()
@@ -256,6 +256,7 @@ class Response (models.Model):
                 self.marks_given = chosen_option.maximum_mark
             else:
                 self.marks_given = -chosen_option.negative_mark
+            self.marks_given = max(0, int(self.marks_given))
 
         self.save()
 

@@ -1,0 +1,25 @@
+<div id="q{{ response.quiz_question.order_sequence }}" class="card shadow-sm mb-4 border-2 {% if response.marks_given > 0 %}border-success{% elif response.marks_given == 0 %}border-danger{% else %}border-warning{% endif %} w-100"
+     style="min-height: 400px;">
+    <div class="card-body p-4 p-md-5 position-relative d-flex flex-column">
+        <div class="d-flex mb-4">
+            <h4 class="fw-bold me-4">Q{{ response.quiz_question.order_sequence }}</h4>
+            <div class="fs-5 w-100">
+                {{ response.quiz_question.question.question_text|safe }}
+            </div>
+        </div>
+
+        <div class="ps-md-5 mb-4">
+            <label class="fw-bold text-muted mb-2 text-uppercase small">Your Answer:</label>
+            <input type="text" class="form-control fs-5 bg-light text-dark mb-3" value="{{ response.answer_given|default:'[No Answer Provided]' }}" disabled>
+
+            {% if quiz.review_right_answer and response.marks_given == 0 %}
+                <div class="p-3 bg-success-subtle border border-success rounded-2 mt-3">
+                    <span class="d-block fw-bold text-success mb-1 small text-uppercase">Expected Answer:</span>
+                    <span class="text-dark fs-5">{{ response.quiz_question.question.shortanswerquestionoption.answer_text}}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        {% include 'partials/review/review_feedback_footer.html' %}
+    </div>
+</div>
