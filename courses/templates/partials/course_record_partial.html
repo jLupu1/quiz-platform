@@ -1,0 +1,29 @@
+{% for course in courses %}
+    <tr>
+        <th scope="row" class="ps-4 py-3">
+            <span class="badge bg-primary fs-6 px-3 py-2 rounded-2">{{ course.code }}</span>
+        </th>
+
+        <td class="py-3 fw-bold text-dark fs-5">{{ course.name }}</td>
+
+        <td class="py-3 text-center">
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-sm btn-outline-primary px-3 rounded-2 fw-medium">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Visit
+            </a>
+        </td>
+
+        <td class="pe-4 py-3 text-center">
+            <a href="{{ course.id }}" class="btn btn-sm btn-outline-dark px-3 rounded-2 fw-medium">
+                <i class="bi bi-gear me-1"></i> Manage
+            </a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4" class="text-center py-5 text-muted">
+            <i class="bi bi-journal-x display-4 d-block mb-3"></i>
+            <h5>No courses found</h5>
+            <p class="mb-0">No courses found.</p>
+        </td>
+    </tr>
+{% endfor %}

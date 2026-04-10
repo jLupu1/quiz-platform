@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %} {{ quiz.name }} - Landing {% endblock %}
+
+{% block content %}
+    <div class="container py-5 mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card border-dark-subtle shadow-sm rounded-1">
+                    <div class="card-body p-5 text-center">
+
+                        <h6 class="text-primary text-uppercase fw-bold tracking-wide mb-2">{{ quiz.course.name }}</h6>
+                        <h2 class="display-5 fw-bold text-dark mb-4">{{ quiz.name }}</h2>
+
+                        <p class="lead text-secondary mb-4">
+                            {{ quiz.introduction|default:"Please read all questions carefully before answering." }}
+                        </p>
+
+                        <hr class="text-secondary opacity-25 mb-4">
+
+                        <div class="d-flex justify-content-center gap-5 mb-5 text-dark">
+                            <div>
+                                <i class="bi bi-stopwatch fs-4 d-block mb-1"></i>
+                                <strong>{{ quiz.time_limit }} mins</strong>
+                            </div>
+                            <div>
+                                <i class="bi bi-arrow-repeat fs-4 d-block mb-1"></i>
+                                <strong>Attempt: {{ attempt_count|add:"1" }}</strong>
+                                <span class="text-muted small d-block">
+                                {% if quiz.maximum_attempts == -1 %}
+                                    (Max: Unlimited)
+                                {% else %}
+                                    (Max: {{ quiz.maximum_attempts|default:"?" }})
+                                {% endif %}
+                            </span>
+                            </div>
+                        </div>
+
+                        <form method="POST" class="d-flex flex-column gap-3 mt-4 mx-auto" style="max-width: 350px;">
+                            {% csrf_token %}
+
+                            <button type="submit" class="btn btn-primary btn-lg rounded-2 fw-bold px-5 py-3 shadow-sm w-100">
+                                {% if resuming %}
+                                    <i class="bi bi-play-circle-fill me-2 fs-5 align-middle"></i> Resume Attempt
+                                {% else %}
+                                    <i class="bi bi-play-fill me-2 fs-5 align-middle"></i> Start Attempt
+                                {% endif %}
+                            </button>
+
+                            <a href="{% url 'course_detail' quiz.course_id %}" class="btn btn-outline-secondary btn-lg rounded-2 px-5 py-3 fw-bold w-100 text-center">
+                                Cancel
+                            </a>
+
+                        <a href="{% url 'quiz_history' quiz.id request.user.id %}" class="btn btn-outline-secondary btn-lg px-4 rounded-2 shadow-sm d-flex justify-content-center align-items-center">
+                            <i class="bi bi-clock-history me-2"></i> View Past Attempts
+                        </a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

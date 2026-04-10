@@ -1,0 +1,48 @@
+{% for quiz in quizzes %}
+<tr>
+    <td class="py-3"> {{ quiz.id }}</td>
+    <td class="py-3"> {{ quiz.name }}</td>
+    <td class="ps-4 py-3 fw-bold">
+       {% if quiz.dynamic_state == 'closed' %}
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-2 rounded-pill">Closed</span>
+
+        {% elif quiz.dynamic_state == 'open' %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle ms-2 rounded-pill">Open</span>
+
+        {% elif quiz.dynamic_state == 'scheduled' %}
+            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-2 rounded-pill">Scheduled</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if request.user.is_student %}
+            <a href="{% url 'quiz_history' quiz.id request.user.id %}?source=quiz-list"
+               class="btn btn-sm btn-outline-secondary px-3 rounded-2 fw-medium">
+                Review Attempts
+            </a>
+            {% else %}
+                <a href="{% url 'teacher_student_attempt_list' quiz.id %}?source=quiz-list"
+                   class="btn btn-sm btn-outline-secondary px-3 rounded-2 fw-medium">
+                    Review Attempts
+                </a>
+        {% endif %}
+    </td>
+    <td>
+        {% if request.user.is_staff_member %}
+            <a href="{% url 'edit-quiz' quiz.id %}?source=quiz-list"
+               class="btn btn-sm btn-outline-dark px-3 rounded-2 fw-medium">
+                <i class="bi bi-gear me-1"></i> Manage
+            </a>
+
+        {% endif %}
+    </td>
+</tr>
+
+{% empty %}
+<tr>
+    <td colspan="4" class="text-center py-5 text-muted">
+        <i class="bi bi-question display-4 d-block mb-3"></i>
+        <h5>No quizzes found</h5>
+        <p class="mb-0">There are currently no quizzes to display.</p>
+    </td>
+</tr>
+{% endfor %}

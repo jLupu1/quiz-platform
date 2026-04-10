@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Add Question {% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'questions/questions.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5 max-w-custom" style="max-width: 1400px;">
+
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold text-dark mb-2">Quiz Questions</h1>
+        <p class="text-muted fs-5">Build your quiz or select a question to edit.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-4 col-xl-3 mb-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-light">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-2 px-4">
+                    <h4 class="h6 text-uppercase fw-bold text-muted mb-0">
+                        <i class="bi bi-list-ol me-2"></i> Current Questions <span class="badge bg-secondary ms-1 rounded-pill">{# TODO Number of questions #}</span>
+                    </h4>
+                </div>
+
+                <div class="card-body p-3 sidebar-scroll" style="max-height: 700px; overflow-y: auto;">
+                    {% for added_question in added_questions %}
+                        <div class="card border-light shadow-none mb-2 rounded-3 question-card-hover cursor-pointer">
+                            <div class="card-body p-3 d-flex justify-content-between align-items-center gap-2">
+                                <div class="text-truncate">
+                                    <span class="badge rounded-pill {{ added_question.question.get_badge_color }}" style="font-size: 0.7rem;">
+                                        {{ added_question.question.get_question_type_display }}
+                                    </span>
+                                    <p class="mb-0 small fw-medium text-truncate" title="{{ added_question.question.question_text }}">{{ added_question.question.question_text }}</p>
+                                </div>
+                                <a href="{% url 'edit_question' added_question.id %}" class="btn btn-sm btn-light text-primary rounded-circle px-2" title="Edit Question">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-xl-8">
+            <form method="POST" id="question-form" novalidate>
+                {% csrf_token %}
+                {% if form.errors %}
+                    <div class="alert alert-danger shadow-sm rounded-3 mb-4">
+                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Oops! Something went wrong.</h5>
+                        <ul class="mb-0">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li><strong>{{ field|title }}</strong>: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h4 class="h5 mb-0 fw-bold"><i class="bi bi-card-text me-2"></i> Question Details</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold text-primary">Question Type <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" name="question_type" id="question_select"
+                                        hx-get="{% url 'get_question_partial' %}"
+                                        hx-target="#dynamic-sections-container"
+                                        hx-swap="innerHTML">
+{#                                    Value from question_model#}
+                                    <option value="" selected disabled>-- Select a question type to begin --</option>
+                                    <option value="0">Multiple Choice (MCQ)</option>
+                                    <option value="1">Either/Or (True/False)</option>
+                                    <option value="2">Short Answer</option>
+                                    <option value="3">Essay</option>
+                                    <option value="4">Text Filler (Fill in blanks)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Question Text <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="question_text" rows="3"
+                                          placeholder="Enter the main question here..." required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">General Feedback (Optional)</label>
+                                <textarea class="form-control" name="general_feedback" rows="2"
+                                          placeholder="Feedback shown regardless of right/wrong answer."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dynamic-sections-container"></div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 mb-5 pb-5">
+                    <a href="{% url 'view_questions' quiz.id %}" class="btn btn-light border px-4 py-2 rounded-2 fw-medium text-muted">Done</a>
+                    <button type="submit" id="save-btn" class="btn btn-primary btn-lg px-5 py-2 rounded-3 fw-bold shadow-sm d-none">
+                        <i class="bi bi-floppy-fill me-2"></i> Save Question
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let save_btn = document.getElementById('save-btn');
+    let question_select = document.getElementById('question_select');
+
+    question_select.addEventListener("change", function (){
+        if (question_select.value !== ""){
+            save_btn.classList.remove('d-none');
+        } else {
+            save_btn.classList.add('d-none');
+        }
+    });
+</script>
+{% endblock %}

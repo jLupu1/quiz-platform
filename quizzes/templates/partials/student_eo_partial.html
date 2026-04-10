@@ -1,0 +1,48 @@
+<form hx-post="{% url 'question_engine' attempt.id quiz_question.id %}" 
+      hx-target="#main-question-area" 
+      hx-swap="innerHTML" 
+      class="d-flex flex-column h-100">
+    {% csrf_token %}
+
+    <div class="d-flex align-items-start gap-4 mb-5">
+        <h4 class="fw-bold mb-0 mt-1">Q{{ question_number }}</h4>
+        <div class="flex-grow-1">
+            <p class="fs-5 text-dark">{{ quiz_question.question.question_text }}</p>
+        </div>
+    </div>
+
+    <div class="flex-grow-1 d-flex justify-content-center align-items-start gap-4 mt-2">
+        {% for option in quiz_question.question.eitheroroption_set.all %}
+        <div class="form-check border border-dark-subtle rounded-1 shadow-sm p-3 px-5 d-flex align-items-center bg-light option-card">
+            <input class="form-check-input border-dark-subtle m-0 fs-5" 
+                   type="radio" 
+                   name="eo_answer" 
+                   id="eo_option_{{ option.id }}" 
+                   value="{{ option.id }}"
+                   {% if option.id in existing_response_option_ids %}checked{% endif %}>
+            
+            <label class="form-check-label text-dark fs-5 fw-medium ms-3" style="cursor: pointer; user-select: none;" for="eo_option_{{ option.id }}">
+                {{ option.label }}
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="d-flex justify-content-end mt-4">
+        {% if successfully_saved %}
+            <span class="text-success fw-bold me-3 align-self-center"><i class="bi bi-check-circle-fill me-1"></i> Saved!</span>
+        {% endif %}
+        <button type="submit" class="btn btn-primary px-4 fw-bold rounded-1 shadow-sm">Save Answer</button>
+    </div>
+</form>
+
+{% if successfully_saved %}
+<button id="sidebar-btn-{{ quiz_question.id }}" 
+        class="btn btn-success btn-sm rounded-1 fw-bold shadow-sm"
+        hx-get="{% url 'question_engine' attempt.id quiz_question.id %}"
+        hx-target="#main-question-area"
+        hx-swap="innerHTML"
+        hx-swap-oob="true">
+    {{ current_question_number }}
+</button>
+{% endif %}

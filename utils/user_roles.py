@@ -8,4 +8,3 @@ class UserRole(IntEnum):
     @classmethod
     def choices(cls):
         return [(cls.value,cls.name) for cls in UserRole]
-

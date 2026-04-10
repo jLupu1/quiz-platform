@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Profile {% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    {% if messages %}
+        <div class="row justify-content-center mb-3">
+            <div class="col-md-8">
+                {% for message in messages %}
+                    <div class="alert alert-success alert-dismissible fade show text-center shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <h1 class="mb-4 text-center">Hello, {{ user.first_name }} 👋</h1>
+
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <h2 class="h4 text-center mb-3">Personal Details</h2>
+
+            <div class="card h-100 shadow-sm mx-auto">
+                <div class="card-body text-center">
+
+                    {% if user.user_pic %}
+                        <img src="{{ user.user_pic.url }}" alt="Profile Picture" class="rounded-circle mb-3" width="150" height="150" style="object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px; font-size: 3rem;">
+                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                        </div>
+                    {% endif %}
+
+                    <h3 class="card-title h5">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-muted mb-3">@{{ user.username }}</p>
+
+                    <hr>
+
+                    <div class="text-start px-4">
+                        <p class="mb-2"><strong>Account Type:</strong> {{ user.get_role_display }}</p>
+                        <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
+                        <p class="mb-2"><strong>Password:</strong> *********</p>
+
+                        <a href="{% url 'password_change' %}" class="btn btn-danger mt-2">Change password</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <h2 class="h4 text-center mb-3">Course Details</h2>
+
+            <div class="card h-100 shadow-sm mx-auto">
+                <div class="card-body">
+
+                    <h3 class="card-title h5 text-center mb-4">Enrolled Courses</h3>
+
+                    <ul class="list-group list-group-flush">
+{#                        <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                            Introduction to Placeholder#}
+{#                        </li>#}
+{#                        <li class="list-group-item d-flex justify-content-between align-items-center">#}
+{#                            Advanced Placeholder#}
+{#                        </li>#}
+                        {% for course in enrolled_courses %}
+                            <li class="list-group-item d-flex align-items-center">
+                                <span class="badge bg-primary fs-6 px-1 py-1 rounded-2"> {{ course.code }}</span>
+                                <span class="px-2">{{ course.name }}</span>
+                            </li>
+
+                            {% empty %}
+                             <h3 class="text-muted mb-3">No courses yet!</h3>
+                             <p class="lead text-muted mb-4 fs-6">You are not currently enrolled in any active courses.</p>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

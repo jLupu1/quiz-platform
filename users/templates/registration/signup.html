@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} User Creation {% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'users/users.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<script src="{% static 'users/scripts/tooltip.js' %}"></script>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="card-header bg-primary text-white p-4 text-center border-0">
+                    <h2 class="h3 mb-0 fw-bold">Create an Account</h2>
+                    <p class="text-white-50 mb-0 mt-1">Set up a new user for the platform</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form method="POST" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                            <div class="mb-4 text-start">
+
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold text-dark mb-1 d-flex align-items-center">
+                                    {{ field.label }}
+
+                                    {% if field.field.required %}
+                                        <span class="text-danger ms-1">*</span>
+                                    {% endif %}
+
+                                    {% if field.name == 'password1' %}
+                                        <i class="bi bi-info-circle-fill text-secondary ms-2"
+                                           style="cursor: help;"
+                                           data-bs-toggle="tooltip"
+                                           data-bs-placement="right"
+                                           title="Must be at least 8 characters long, cannot be entirely numeric, and cannot be too similar to your personal information.">
+                                        </i>
+                                    {% endif %}
+                                </label>
+
+                                {{ field }}
+
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-1 fw-medium">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ field.errors|striptags }}
+                                    </div>
+                                {% endif %}
+
+                            </div>
+                        {% endfor %}
+
+                        <hr class="my-4 text-muted">
+
+                        <button class="btn btn-primary btn-m w-100 fw-medium rounded-3" type="submit">
+                            <i class="bi bi-person-plus-fill me-1"></i> Sign Up
+                        </button>
+                            <a href="{% url 'admin_user_list' %}"
+                               class="btn btn-light border rounded-3 mt-2 fw-medium w-100">Cancel</a>
+
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

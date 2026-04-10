@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %} Quiz Submitted {% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-dark-subtle shadow text-center rounded-2">
+                <div class="card-body p-5">
+                    
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="fw-bold mb-3">Quiz Submitted!</h2>
+                    <p class="text-muted fs-5 mb-4">Your responses for <strong>{{ attempt.quiz.name }}</strong> have been securely saved.</p>
+                    
+                    <div class="d-flex justify-content-center gap-4 mb-4">
+                        <div class="p-3 bg-light rounded-2 border border-dark-subtle w-50">
+                            <h3 class="fw-bold text-primary mb-0">{{ answered_questions }} / {{ total_questions }}</h3>
+                            <span class="text-muted small text-uppercase fw-bold">Questions Answered</span>
+                        </div>
+                    </div>
+
+                    {% if unanswered_count > 0 %}
+                        <div class="alert alert-warning py-2 mb-4">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                            You left {{ unanswered_count }} question(s) blank.
+                        </div>
+                    {% endif %}
+
+                {% if review_marks %}
+                        <div class="card border-primary shadow-sm mb-4">
+                            <div class="card-body p-4 bg-primary-subtle rounded-2">
+                                <h5 class="fw-bold text-primary text-uppercase mb-3">Your Score</h5>
+
+                                <div class="display-4 fw-bold text-dark mb-2">
+                                    {{ attempt.total_marks_given|default:"0" }} <span class="fs-4 text-muted">/ {{ attempt.quiz.maximum_marks }}</span>
+                                </div>
+
+                                {% if pending_grading %}
+                                    <div class="badge bg-warning text-dark fs-6 py-2 px-3 mt-2 shadow-sm rounded-pill">
+                                        <i class="bi bi-hourglass-split me-1"></i> Pending Manual Grading
+                                    </div>
+                                    <p class="small text-muted mt-3 mb-0" style="line-height: 1.2;">
+                                        * Your quiz contains written answers that require manual review by your instructor. Your final score may increase!
+                                    </p>
+                                {% else %}
+                                    <div class="badge bg-success fs-6 py-2 px-3 mt-2 shadow-sm rounded-pill">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Fully Graded
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info py-3 mb-4 rounded-2 border-0 shadow-sm text-start">
+                            <i class="bi bi-info-circle-fill me-2 fs-5 align-middle"></i>
+                            <span class="align-middle fw-medium">Your instructor has chosen to hide the grades for this quiz.</span>
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'course_detail' attempt.quiz.course_id %}" class="btn btn-primary btn-lg px-5 fw-bold rounded-1 shadow-sm">
+                        Return to Course
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -14,9 +14,33 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+
+import dashboard.views
+from com3610 import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('users/', include('users.urls')),
+    path('users/',include("django.contrib.auth.urls")),
+    path('',dashboard.views.index_dashboard,name='index'),
+    path('courses/',include("courses.urls")),
+
+    path('quizzes/',include("quizzes.urls")),
+    path('questions/',include("questions.urls")),
+
+    # TODO remove dashboard and redirect to correct course page
+    path('dashboard/', include('dashboard.urls')),
+
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+handler403 = 'users.views.error_403'
+handler404 = 'users.views.error_404'
+handler500 = 'users.views.error_500'
+handler405 = 'users.views.error_405'
+handler401 = 'users.views.error_401'

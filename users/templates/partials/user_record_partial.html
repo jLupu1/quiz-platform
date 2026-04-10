@@ -1,0 +1,39 @@
+{% for user in users %}
+<tr class="{% if not user.is_active %}table-light text-muted{% endif %}">
+
+    <td class="py-3"> {{ user.id }}</td>
+    <td class="py-3"> {{ user.username }}</td>
+    <td class="ps-4 py-3 fw-bold">
+        {{ user.first_name }} {{ user.last_name }}
+
+        {% if user.is_active %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle ms-2 rounded-pill">Active</span>
+        {% else %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle ms-2 rounded-pill">Archived</span>
+        {% endif %}
+    </td>
+
+    <td class="py-3">{{ user.email }}</td>
+
+    <td class="py-3">
+        <span class="badge bg-secondary rounded-2">{{ user.get_role_display }}</span>
+    </td>
+
+    <td class="pe-4 py-3 text-end">
+        <a href="{% url 'admin_manage_user' user.id %}"
+           class="btn btn-sm {% if user.is_active %}btn-outline-dark{% else %}btn-outline-secondary{% endif %} px-3 rounded-2 fw-medium">
+            <i class="bi bi-gear me-1"></i> Manage
+        </a>
+    </td>
+
+</tr>
+
+{% empty %}
+<tr>
+    <td colspan="4" class="text-center py-5 text-muted">
+        <i class="bi bi-people display-4 d-block mb-3"></i>
+        <h5>No users found</h5>
+        <p class="mb-0">There are currently no users to display.</p>
+    </td>
+</tr>
+{% endfor %}

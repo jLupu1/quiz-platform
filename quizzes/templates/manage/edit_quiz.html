@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Quiz{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static "quizzes/quizzes.css" %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4 max-w-custom" style="max-width: 1600px;">
+
+<div class="mb-4">
+    <a href="{% url 'course_detail' quiz.course_id %}" class="btn btn-outline-secondary rounded-2 mb-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Course
+    </a>
+
+    <div class="row align-items-center">
+
+        <div class="col-md-8">
+            <div class="d-flex align-items-center flex-wrap gap-3">
+                <h1 class="display-6 fw-bold text-dark mb-0">{{ quiz.name }}</h1>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 mt-1">
+                    <i class="bi bi-journal-bookmark me-1"></i> {{ quiz.course.name }}
+                </span>
+            </div>
+        </div>
+
+        <div class="col-md-4 text-md-end mt-4 mt-md-0">
+            <a href="{% url 'create_question' quiz.id %}" class="btn btn-primary rounded-2 shadow-sm px-4 fw-bold">
+                <i class="bi bi-plus-lg me-2"></i> New Question
+            </a>
+        </div>
+
+    </div>
+</div>
+
+    <div class="row g-5">
+
+        <div class="col-lg-7 col-xl-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 px-md-5">
+                    <h4 class="h5 fw-bold text-secondary"><i class="bi bi-gear-fill me-2"></i>Quiz Settings</h4>
+                </div>
+                <div class="card-body p-4 p-md-5 pt-3">
+
+                    <form method="POST" id="edit-quiz-form">
+                        {% csrf_token %}
+
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">Core Details</h5>
+                        <div class="row g-4 mb-5">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Quiz Name</label>
+                                <input type="text" class="form-control bg-light" name="name" value="{{ quiz.name }}" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Introduction / Instructions</label>
+                                <textarea class="form-control bg-light" name="introduction" rows="3">{{ quiz.introduction }}</textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Overall Feedback</label>
+                                <textarea class="form-control bg-light" name="overall_feedback" rows="2" placeholder="Shown at the end of the quiz based on grade.">{{ quiz.overall_feedback }}</textarea>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <label class="form-label fw-bold" for="quiz_status">Quiz Status</label>
+                                <select class="form-select bg-light border-dark-subtle" name="status" id="quiz_status" required>
+                                    <option value="0" {% if quiz.status == 0 %}selected{% endif %}>Closed / Draft (Overrides Dates)</option>
+                                    <option value="1" {% if quiz.status == 1 %}selected{% endif %}>Manually Open (Overrides Dates)</option>
+                                    <option value="2" {% if quiz.status == 2 %}selected{% endif %}>Scheduled (Automatic via Dates)</option>
+                                </select>
+                                <div class="form-text text-muted small mt-1">
+                                    <i class="bi bi-info-circle me-1"></i> You cannot select 'Open' or 'Scheduled' unless the quiz has at least one question.
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">Timing & Grading</h5>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Open Date</label>
+                                <input type="datetime-local" class="form-control" name="open_date" value="{{ quiz.open_date|date:'Y-m-d\TH:i' }}">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Close Date</label>
+                                <input type="datetime-local" class="form-control" name="close_date" value="{{ quiz.close_date|date:'Y-m-d\TH:i' }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Time Limit (mins)</label>
+                                <input type="number" step="0.1" class="form-control" name="time_limit" value="{{ quiz.time_limit }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Total Marks</label>
+                                <input type="number" step="0.1" class="form-control" name="maximum_marks" disabled value="{{ quiz.maximum_marks }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Max Attempts</label>
+                                <input type="number" class="form-control" name="maximum_attempts" value="{{ quiz.maximum_attempts }}">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-truncate" title="Delay Between Attempts (mins)">Delay (mins)</label>
+                                <input type="number" step="0.1" class="form-control" name="delay_between_attempts" value="{{ quiz.delay_between_attempts }}">
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">Behavior & Privacy</h5>
+                        <div class="row g-4 mb-5 bg-light p-3 rounded-3 border">
+
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="shuffle_questions" id="shuffle_questions" {% if quiz.shuffle_questions %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="shuffle_questions">Shuffle Questions</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="shuffle_answers" id="shuffle_answers" {% if quiz.shuffle_answers %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="shuffle_answers">Shuffle Answers</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="show_user_picture" id="show_user_picture" {% if quiz.show_user_picture %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="show_user_picture">Show User Picture</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="anonymise_student" id="anonymise_student" {% if quiz.anonymise_student %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="anonymise_student">Anonymise Student</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="anonymise_marker" id="anonymise_marker" {% if quiz.anonymise_marker %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="anonymise_marker">Anonymise Marker</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">Student Review Options</h5>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="review_attempt" id="review_attempt" {% if quiz.review_attempt %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="review_attempt">Review Attempt</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="review_marks" id="review_marks" {% if quiz.review_marks %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="review_marks">Show Marks</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="review_right_answer" id="review_right_answer" {% if quiz.review_right_answer %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="review_right_answer">Show Right Answer</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="review_specific_feedback" id="review_specific_feedback" {% if quiz.review_specific_feedback %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="review_specific_feedback">Specific Feedback</label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" name="review_general_feedback" id="review_general_feedback" {% if quiz.review_general_feedback %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="review_general_feedback">General Feedback</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="review_overall_feedback" id="review_overall_feedback" {% if quiz.review_overall_feedback %}checked{% endif %}>
+                                    <label class="form-check-label fw-medium" for="review_overall_feedback">Overall Feedback</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-5 text-muted">
+
+                        <div class="d-flex justify-content-end gap-3">
+                            <a href="{% url 'course_detail' quiz.course_id %}" class="btn btn-outline-secondary btn-lg px-4 rounded-2 shadow-sm fw-bold">Cancel</a>
+                            <button type="submit" class="btn btn-primary btn-lg px-5 rounded-2 shadow-sm fw-bold">
+                                <i class="bi bi-save me-2"></i>Update Settings
+                            </button>
+                        </div>
+                    </form>
+
+                <button type="button" class="btn btn-outline-danger btn-lg px-4 rounded-2 shadow-sm fw-bold"
+                        hx-delete="{% url 'delete_quiz' quiz.id %}"
+                        hx-confirm="Are you sure you want to permanently delete this quiz?"
+                        hx-on::after-request="window.location.href='{% url 'course_detail' quiz.course_id%}'">
+                    <i class="bi bi-trash-fill me-2"></i>Delete Quiz
+                </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 col-xl-4">
+            <div class="card border-0 bg-transparent shadow-none h-100" id="full-question-list-container">
+
+                {% include 'partials/question_list_partial.html' %}
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    });
+</script>
+{% endblock %}
