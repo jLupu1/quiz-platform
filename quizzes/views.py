@@ -75,7 +75,6 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        print(form.errors)
         if 'status' in form.errors:
             messages.error(self.request, form.errors['status'][0])
         elif 'close_date' in form.errors:
@@ -308,7 +307,6 @@ def quiz_results(request, attempt_id):
 def quiz_history(request, quiz_id, user_id):
     user = request.user
     source = request.GET.get('source')
-    print(source)
 
 
     # TODO AUTO TEST
@@ -409,7 +407,6 @@ def teacher_student_attempt_list(request, quiz_id):
             "You are not allowed to view this attempt history as you are not a teacher enrolled in this course")
 
     source = request.GET.get('source')
-    print(source)
 
     quiz = get_object_or_404(Quiz, id=quiz_id)
     context = {'quiz': quiz,
