@@ -1,0 +1,33 @@
+{% for user in users %}
+    <tr>
+        {% if quiz.anonymise_student %}
+            <td class="ps-4 py-3">{{ forloop.counter }}</td>
+            <td class="py-3">AnonUser_{{ forloop.counter }}</td>
+            <td class="py-3 fw-bold">
+                Anonymous User {{ forloop.counter }}
+            </td>
+        {% else %}
+            <td class="ps-4 py-3">{{ user.id }}</td>
+            <td class="py-3">{{ user.username }}</td>
+            <td class="py-3 fw-bold">
+                {{ user.first_name }} {{ user.last_name }}
+            </td>
+        {% endif %}
+
+        <td class="pe-4 py-3 text-center">
+            <a href="{% url 'quiz_history' quiz.id user.id %}"
+               class="btn btn-sm btn-outline-dark px-3 rounded-2 fw-medium">
+                Review Attempts
+            </a>
+        </td>
+    </tr>
+
+{% empty %}
+<tr>
+    <td colspan="4" class="text-center py-5 text-muted">
+        <i class="bi bi-people display-4 d-block mb-3"></i>
+        <h5>No users found</h5>
+        <p class="mb-0">There are currently no users to display.</p>
+    </td>
+</tr>
+{% endfor %}

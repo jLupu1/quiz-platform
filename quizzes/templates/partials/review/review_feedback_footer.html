@@ -1,0 +1,25 @@
+{% if quiz.review_general_feedback and response.quiz_question.question.general_feedback %}
+    <div class="p-3 bg-light border border-dark-subtle rounded-2 mb-5 ms-md-5">
+        <span class="fw-bold text-dark d-block mb-1 small text-uppercase">General Feedback:</span>
+        <span class="text-muted">{{ response.quiz_question.question.general_feedback }}</span>
+    </div>
+{% endif %}
+
+{% if quiz.review_marks %}
+    <div class="position-absolute bottom-0 end-0 m-4 text-center">
+        <div class="badge bg-dark px-3 py-1 mb-2 shadow-sm rounded-1">
+            Marks Awarded
+        </div>
+        <div class="d-block">
+            {% if response.marks_given == None %}
+                <span class="badge rounded-pill fs-6 px-4 py-2 shadow-sm bg-warning text-dark border border-warning-subtle">
+                    <i class="bi bi-hourglass-split me-1"></i> Pending
+                </span>
+            {% else %}
+                <span class="badge rounded-pill fs-6 px-4 py-2 shadow-sm {% if response.marks_given > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ response.marks_given|default:"0" }} / {{ response.quiz_question.question.calc_question_max_mark|default:"?" }}
+                </span>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}

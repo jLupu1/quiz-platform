@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic import CreateView, ListView, UpdateView
 from courses.forms import CourseCreationForm
 from courses.models import Course
@@ -40,20 +41,29 @@ class CourseCreateView(LoginRequiredMixin,UserPassesTestMixin, CreateView):
 @login_required(login_url='/users/login')
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk)
+    teachers = course.enrollment.filter(role=UserRole.TEACHER,is_active=True)
 
     is_admin = request.user.is_admin
     is_enrolled = course.enrollment.filter(id=request.user.id).exists()
 
-    active_quizzes = course.quiz_set.exclude(status=0) #exclude closed quizzes
-    sorted_quizzes = sorted(active_quizzes, key=lambda q: q.is_currently_available, reverse=True)
-#TODO will get marked quizzes and add to context
+    all_quizzes = course.quiz_set.all()
+
+    # gets active and upcoming quizzes.
+    active_quizzes = [quiz for quiz in all_quizzes if quiz.is_currently_available
+                      or (quiz.open_date and quiz.open_date > timezone.now())]
+    closed_quizzes = [quiz for quiz in all_quizzes if not quiz.is_currently_available]
+
+    active_quizzes = sorted(active_quizzes, key=lambda q: q.close_date or timezone.now())
+
     if not(is_admin or is_enrolled):
         raise PermissionDenied("You are not enrolled in this module/course")
 
     context = {
         'course': course,
         'default_students': course.enrollment.filter(role=UserRole.STUDENT,is_active=True),
-        'upcoming_quizzes': sorted_quizzes,
+        'upcoming_quizzes': active_quizzes,
+        'closed_quizzes': closed_quizzes,
+        'teachers': teachers,
     }
     # context will need course detail and quizzes
     if request.user.is_teacher or request.user.is_admin:
@@ -62,6 +72,7 @@ def course_detail(request, pk):
         return render(request, 'courses/course_detail_student.html', context)
 
 @login_required(login_url='/users/login')
+@user_passes_test(lambda user: user.is_staff_member)
 def search_course_students(request,pk):
     # returns 404 if not found
     course = get_object_or_404(Course, pk=pk)

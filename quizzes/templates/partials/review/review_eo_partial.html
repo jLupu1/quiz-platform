@@ -1,0 +1,34 @@
+<div id="q{{ response.quiz_question.order_sequence }}" class="card shadow-sm mb-4 border-2 {% if response.marks_given > 0 %}border-success{% elif response.marks_given == 0 %}border-danger{% else %}border-warning{% endif %} w-100"
+     style="min-height: 400px;">
+
+    <div class="card-body p-4 p-md-5 position-relative d-flex flex-column">
+        <div class="d-flex mb-4">
+            <h4 class="fw-bold me-4">Q{{ response.quiz_question.order_sequence }}</h4>
+            <div class="fs-5 w-100">
+                {{ response.quiz_question.question.question_text|safe }}
+            </div>
+        </div>
+
+        <div class="ps-md-5 mb-4 d-flex flex-column gap-3">
+            {% for option in response.quiz_question.question.eitheroroption_set.all %}
+                <div class="form-check">
+                    <input class="form-check-input fs-5 shadow-none border-dark-subtle"
+                           type="radio"
+                           disabled
+                           {% if option.id in user_selected_option_ids %}checked{% endif %}>
+
+                    <label class="form-check-label fs-5 ms-2 {% if quiz.review_right_answer and option.is_correct %}text-success fw-bold{% endif %}">
+                        {{ option.label }}
+                    </label>
+                    {% if quiz.review_specific_feedback and option.id in user_selected_option_ids and option.specific_feedback %}
+                        <div class="mt-2 p-2 border border-primary text-primary bg-primary-subtle rounded-1 small fw-medium" style="max-width: 500px;">
+                            {{ option.specific_feedback }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% include 'partials/review/review_feedback_footer.html' %}
+    </div>
+</div>

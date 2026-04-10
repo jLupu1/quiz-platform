@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Review User Attempts {% endblock title %}
+
+{% block content %}
+<div class="container-fluid px-4 px-lg-5 mt-4 mt-lg-5">
+
+    {% if source == 'quiz-list' %}
+        <a href="{% url 'quiz_list' quiz.course.id %}" class="text-decoration-none text-muted mb-3 d-inline-block fw-medium transition-all hover-dark">
+            <i class="bi bi-arrow-left me-1"></i> Back to Quizzes
+        </a>
+    {% else %}
+        <a href="{% url 'course_detail' quiz.course.id %}" class="text-decoration-none text-muted mb-3 d-inline-block fw-medium transition-all hover-dark">
+        <i class="bi bi-arrow-left me-1"></i> Back to Course
+    </a>
+    {% endif %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+
+        <div>
+            <h1 class="display-6 fw-bold mb-0 text-dark">Review Attempts</h1>
+            <p class="text-muted fs-5 mb-0 mt-1">{{ quiz.name }}</p>
+        </div>
+
+        {% if not quiz.anonymise_student %}
+    <div class="input-group shadow-sm m-0" style="max-width: 350px;">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="search"
+               name="search"
+               class="form-control border-start-0 ps-0"
+               placeholder="Search for a student..."
+               hx-get="{% url 'search_quiz_students' quiz.id %}"
+               hx-trigger="input changed delay:500ms, search"
+               hx-target="#attempt-list-tbody"
+               hx-indicator="#search-spinner">
+    </div>
+{% endif %}
+
+    </div>
+
+    <div class="card border-dark-subtle rounded-3 shadow-sm mb-5 position-relative">
+
+        <div id="search-spinner" class="htmx-indicator position-absolute top-0 end-0 m-3 text-primary z-3">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light border-bottom border-dark-subtle small text-uppercase">
+                        <tr>
+                            <th scope="col" class="ps-4 py-3 text-secondary fw-bold tracking-wide">ID</th>
+                            <th scope="col" class="py-3 text-secondary fw-bold tracking-wide">Username</th>
+                            <th scope="col" class="py-3 text-secondary fw-bold tracking-wide">Full Name</th>
+                            <th scope="col" class="pe-4 py-3 text-center text-secondary fw-bold tracking-wide">Manage</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="attempt-list-tbody">
+                        {% include 'partials/teacher/teacher_student_attempt_list_partial.html' %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

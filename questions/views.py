@@ -49,19 +49,19 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
             question_type = self.request.POST.get('question_type')
 
             # MCQ
-            if question_type == QuestionType.MCQ:
+            if question_type == '0':
                 create_mcq_question(self.request, question)
 
             # Either/Or
-            elif question_type == QuestionType.EITHER_OR:
+            elif question_type == '1':
                 create_eo_option(self.request,question)
 
             # Short Answer
-            elif question_type == QuestionType.SHORT_ANSWER:
+            elif question_type == '2':
                 create_sa_question(self.request, question)
 
             # Essay
-            elif question_type == QuestionType.ESSAY_QUESTION:
+            elif question_type == '3':
                 create_essay_question(self.request, question)
 
             # Text Filler
