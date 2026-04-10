@@ -98,6 +98,28 @@ class Quiz (models.Model):
                 return True
         return False
 
+    @property
+    def dynamic_state(self):
+        """Returns the exact current state of the quiz as a simple string."""
+        now = timezone.now()
+        # Open state overrides dates
+        if self.status == self.QuizStatus.OPEN:
+            return "open"
+
+        if self.status == self.QuizStatus.CLOSED or (self.close_date and now > self.close_date):
+            return "closed"
+
+
+        if self.status == self.QuizStatus.SCHEDULED:
+            if self.open_date and now < self.open_date:
+                return "scheduled"
+            if self.open_date and now >= self.open_date:
+                return "open"
+            if not self.open_date and not self.close_date:
+                return "open"
+
+        return "closed"
+
     def clean(self):
         """blocks bad data from saving to the database."""
         super().clean()

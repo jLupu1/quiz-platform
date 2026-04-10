@@ -18,18 +18,24 @@
         </div>
 
         <div class="col-md-6 d-flex justify-content-md-end mt-4 mt-md-0">
-            {% if quiz.review_marks %}
             <div class="card border-dark shadow-sm" style="min-width: 200px;">
                 <div class="card-header bg-dark text-white text-center py-2">
                     <span class="small fw-bold text-uppercase tracking-wide">Total Marks Awarded</span>
                 </div>
+            {% if quiz.review_marks or request.user.is_staff_member%}
                 <div class="card-body text-center py-3">
                     <h2 class="display-5 fw-bold mb-0">
                         {{ attempt.total_marks_given|default:"0" }}<span class="text-muted fs-4">/{{ quiz.maximum_marks }}</span>
                     </h2>
                 </div>
-            </div>
+                {% else %}
+                    <div class="card-body text-center py-3">
+                        <h2 class="display-5 fw-bold mb-0">
+                            - <span class="text-muted fs-4">/{{ quiz.maximum_marks }}</span>
+                        </h2>
+                    </div>
             {% endif %}
+            </div>
         </div>
     </div>
 

@@ -10,9 +10,15 @@
                     <i class="bi bi-arrow-left me-1"></i> Back to Users
                 </a>
             {% else %}
-            <a href="{% url 'course_detail' quiz.course_id %}" class="text-decoration-none text-muted mb-2 d-inline-block">
-                <i class="bi bi-arrow-left me-1"></i> Back to Course
-            </a>
+                    {% if source == 'quiz-list' %}
+                        <a href="{% url 'quiz_list' quiz.course_id %}" class="text-decoration-none text-muted mb-2 d-inline-block">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Quizzes
+                        </a>
+                    {% else %}
+                            <a href="{% url 'course_detail' quiz.course_id %}" class="text-decoration-none text-muted mb-2 d-inline-block">
+                                <i class="bi bi-arrow-left me-1"></i> Back to Course
+                            </a>
+                    {% endif %}
             {% endif %}
 
             <h2 class="display-6 fw-bold mb-0">Attempt History</h2>
@@ -38,7 +44,7 @@
                         <td class="text-muted">{{ attempt.submitted_at|date:"M d, Y - h:i A" }}</td>
                         
                         <td>
-                            {% if quiz.review_marks %}
+                            {% if quiz.review_marks or request.user.is_staff_member %}
                                 <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill fs-6">
                                     {{ attempt.total_marks_given|default:"0" }} / {{ quiz.maximum_marks }}
                                 </span>

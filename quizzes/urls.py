@@ -21,5 +21,6 @@ urlpatterns = [
 #  Teacher REview
     path('quiz/<int:quiz_id>/teacher/user-attempts',views.teacher_student_attempt_list,name='teacher_student_attempt_list'),
     path('quiz/<int:quiz_id>/teacher/user-attempts/search-user', views.search_quiz_students, name='search_quiz_students'),
-
+    path('quiz-list/<int:course_id>',views.quiz_list,name='quiz_list'),
+    path('quiz-list/<int:course_id>/search-quiz', views.search_quiz, name='search_quiz'),
 ]

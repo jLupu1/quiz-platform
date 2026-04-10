@@ -1,14 +1,20 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %} Manage Users {% endblock title %}
+{% block title %} Review User Attempts {% endblock title %}
 
 {% block content %}
 <div class="container-fluid px-4 px-lg-5 mt-4 mt-lg-5">
 
-    <a href="{% url 'course_detail' quiz.course_id %}" class="text-decoration-none text-muted mb-3 d-inline-block fw-medium transition-all hover-dark">
+    {% if source == 'quiz-list' %}
+        <a href="{% url 'quiz_list' quiz.course.id %}" class="text-decoration-none text-muted mb-3 d-inline-block fw-medium transition-all hover-dark">
+            <i class="bi bi-arrow-left me-1"></i> Back to Quizzes
+        </a>
+    {% else %}
+        <a href="{% url 'course_detail' quiz.course.id %}" class="text-decoration-none text-muted mb-3 d-inline-block fw-medium transition-all hover-dark">
         <i class="bi bi-arrow-left me-1"></i> Back to Course
     </a>
+    {% endif %}
 
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
 
@@ -26,7 +32,7 @@
                placeholder="Search for a student..."
                hx-get="{% url 'search_quiz_students' quiz.id %}"
                hx-trigger="input changed delay:500ms, search"
-               hx-target="#user-list-tbody"
+               hx-target="#attempt-list-tbody"
                hx-indicator="#search-spinner">
     </div>
 {% endif %}
@@ -52,7 +58,7 @@
                         </tr>
                     </thead>
 
-                    <tbody id="user-list-tbody">
+                    <tbody id="attempt-list-tbody">
                         {% include 'partials/teacher/teacher_student_attempt_list_partial.html' %}
                     </tbody>
 

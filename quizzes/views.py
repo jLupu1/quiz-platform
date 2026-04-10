@@ -55,7 +55,7 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     fields = [
         'name', 'introduction', 'overall_feedback', 'open_date', 'close_date', 'status',
-        'time_limit', 'maximum_attempts', 'maximum_marks', 'delay_between_attempts',
+        'time_limit', 'maximum_attempts', 'delay_between_attempts',
         'shuffle_questions', 'shuffle_answers', 'review_attempt',
         'review_right_answer', 'review_marks', 'review_specific_feedback',
         'review_general_feedback', 'review_overall_feedback', 'show_user_picture',
@@ -75,6 +75,7 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
+        print(form.errors)
         if 'status' in form.errors:
             messages.error(self.request, form.errors['status'][0])
         elif 'close_date' in form.errors:
@@ -306,6 +307,9 @@ def quiz_results(request, attempt_id):
 @login_required(login_url='/users/login/')
 def quiz_history(request, quiz_id, user_id):
     user = request.user
+    source = request.GET.get('source')
+    print(source)
+
 
     # TODO AUTO TEST
     is_snooping_student = user.is_student and user.id != user_id
@@ -321,7 +325,8 @@ def quiz_history(request, quiz_id, user_id):
 
     context = {
         'attempts': attempts,
-        'quiz':quiz ,
+        'quiz':quiz,
+        'source':source,
     }
     return render(request, 'student/quiz_history.html', context)
 
@@ -403,9 +408,13 @@ def teacher_student_attempt_list(request, quiz_id):
         raise PermissionDenied(
             "You are not allowed to view this attempt history as you are not a teacher enrolled in this course")
 
+    source = request.GET.get('source')
+    print(source)
+
     quiz = get_object_or_404(Quiz, id=quiz_id)
     context = {'quiz': quiz,
-               'users':quiz.course.enrollment.filter(role=UserRole.STUDENT,is_active=True),}
+               'users':quiz.course.enrollment.filter(role=UserRole.STUDENT,is_active=True),
+               'source':source}
 
     return render(request,'teacher/teacher_student_attempt_list.html',context=context)
 
@@ -430,6 +439,40 @@ def search_quiz_students(request,quiz_id):
     context = {'quiz': quiz, 'users':students}
     return render(request, 'partials/teacher/teacher_student_attempt_list_partial.html', context)
 
+@login_required(login_url='/users/login')
+def quiz_list(request,course_id):
+    course = get_object_or_404(Course, id=course_id)
+
+
+    if (not is_staff_and_enrolled(request, course_id,'course_id')
+            and not is_student_enrolled(request, course_id,'course_id')):
+        raise PermissionDenied("You are not enrolled on this course to view this course's quizzes")
+
+    quizzes = course.quiz_set.all()
+    context = {'quizzes': quizzes, 'course': course}
+
+    return render(request,'all_quiz_list.html',context)
+
+
+@login_required(login_url='/users/login')
+def search_quiz(request,course_id):
+    if (not is_staff_and_enrolled(request,course_id,'course_id')
+            and not is_student_enrolled(request, course_id,'course_id')):
+        raise PermissionDenied("You are not allowed to view this course's quizzes")
+    course = get_object_or_404(Course, id=course_id)
+    quizzes = course.quiz_set.all()
+
+    search = request.GET.get('search', '')
+
+    if search:
+        quizzes = quizzes.filter(
+            Q(name__icontains=search) |
+            Q(id__icontains=search)
+        )
+    return render(request,"partials/quiz_record_partial.html",{"quizzes":quizzes})
+
+
+
 # ---------- HELPER FUNCTIONS ----------
 def is_staff_and_enrolled(request,quiz_id,id_type='quiz'):
     if request.user.is_admin:
@@ -437,8 +480,8 @@ def is_staff_and_enrolled(request,quiz_id,id_type='quiz'):
     is_enrolled = user_is_enrolled(request,quiz_id,id_type)
     return is_enrolled and request.user.is_staff_member
 
-def is_student_enrolled(request,quiz_id):
-    is_enrolled = user_is_enrolled(request,quiz_id)
+def is_student_enrolled(request,quiz_id,id_type='quiz'):
+    is_enrolled = user_is_enrolled(request,quiz_id,id_type)
     return is_enrolled and request.user.is_student
 
 def user_is_enrolled(request, quiz_or_course_id, id_type='quiz'):
