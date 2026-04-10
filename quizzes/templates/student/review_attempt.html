@@ -95,9 +95,26 @@
                     </p>
                 </div>
             </div>
+                {% elif not quiz.review_overall_feedback %}
+                <div class="card border-dark shadow-sm sticky-top" style="top: 2rem;">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold text-center mb-4 border-bottom pb-2">Overall Feedback</h5>
+                        <p class="text-muted" style="line-height: 1.6;">
+                            Overall feedback has been disabled by the teacher
+                        </p>
+                    </div>
+                </div>
+                {% else %}
+                    <div class="card border-dark shadow-sm sticky-top" style="top: 2rem;">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold text-center mb-4 border-bottom pb-2">Overall Feedback</h5>
+                            <p class="text-muted" style="line-height: 1.6;">
+                                There is no overall feedback to display
+                            </p>
+                        </div>
+                    </div>
             {% endif %}
         </div>
-
     </div>
 </div>
 
