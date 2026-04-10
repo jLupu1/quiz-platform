@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import CreateView, UpdateView, TemplateView
 
+import services
 from courses.models import Course
 from questions.models import QuestionType
 from quizzes.forms import CreateQuizForm
@@ -258,8 +259,10 @@ def question_engine(request, attempt_id, question_id):
 @require_POST
 def submit_quiz(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
+
     if not is_student_enrolled(request,attempt.quiz_id ):
         raise PermissionDenied('You are not enrolled to this course')
+
 
     # prevent double-submission
     if attempt.is_completed:
@@ -269,7 +272,8 @@ def submit_quiz(request, attempt_id):
     attempt.is_completed = True
     attempt.submitted_at = timezone.now()
     attempt.save()
-    attempt.grade_attempt()
+
+    services.process_quiz_submission(attempt)
 
     # send them to the results page
     messages.success(request, "Quiz submitted successfully!")

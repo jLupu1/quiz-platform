@@ -219,6 +219,11 @@ class Attempt (models.Model):
         self.total_marks_given = total_marks
         self.save()
 
+    def calculate_total_score(self):
+        total = sum(response.marks_given for response in self.responses.all() if response.marks_given is not None)
+        self.total_marks_given = total
+        self.save()
+
 
 
 class Response (models.Model):

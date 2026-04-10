@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'courses',
     'questions',
     'quizzes',
-    'dashboard'
+    'dashboard',
+    'django.contrib.postgres'
 ]
 
 MIDDLEWARE = [

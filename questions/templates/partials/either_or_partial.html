@@ -7,7 +7,7 @@
         <div class="row g-3 align-items-end mb-4">
                 <h4>Option {{ forloop.counter }}</h4>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Label (e.g., True, Yes)</label>
+                    <label class="form-label fw-bold">Label (e.g., True, Yes) <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="eo_label_text" value="{{ option.label }}">
                 </div>
                 <div class="col-md-6">
@@ -36,7 +36,7 @@
             <div class="row g-3 align-items-end mb-4">
                 <h4>Option {{ i }}</h4>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Label (e.g., True, Yes)</label>
+                    <label class="form-label fw-bold">Label (e.g., True, Yes) <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="eo_label_text">
                 </div>
                 <div class="col-md-6">
