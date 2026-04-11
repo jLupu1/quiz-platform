@@ -76,16 +76,21 @@
                             </div>
                         </div>
 
-                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">Timing & Grading</h5>
+                        <h5 class="fw-bold text-primary border-bottom pb-2 mb-4">Timing, Grading, and Access</h5>
                         <div class="row g-4 mb-5">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold">Open Date</label>
                                 <input type="datetime-local" class="form-control" name="open_date" value="{{ quiz.open_date|date:'Y-m-d\TH:i' }}">
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold">Close Date</label>
                                 <input type="datetime-local" class="form-control" name="close_date" value="{{ quiz.close_date|date:'Y-m-d\TH:i' }}">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Password</label>
+                                <input type="text" step="0.1" class="form-control" name="password" value="{% if quiz.password %}{{ quiz.password }}{% else %}{% endif  %} ">
                             </div>
 
                             <div class="col-md-3">
