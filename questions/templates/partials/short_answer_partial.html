@@ -3,22 +3,17 @@
         <h4 class="h5 mb-0 fw-bold"><i class="bi bi-text-left me-2"></i> Short Answer Settings</h4>
     </div>
     <div class="card-body p-4">
-        <div class="row g-3">
+
+        <div class="row g-3 mb-4">
             <div class="col-md-12">
-                <label class="form-label fw-bold">Acceptable Answer</label>
-                <input type="text" class="form-control" name="sa_answer" placeholder="e.g., Paris" value="{{ sa_options.answer_text }}">
+                <label class="form-label fw-bold">Acceptable / Model Answer <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="sa_answer" name="sa_answer" rows="3" placeholder="e.g., A firewall acts as a digital barrier that stops hackers and bad traffic from getting into a private computer network." required>{{ sa_options.answer_text }}</textarea>
+                <div class="form-text text-muted small mt-1">
+                    <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                    <strong>Pro-Tip:</strong> The AI grading engine performs better when you provide a detailed, full-sentence model answer.
+                </div>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Max Word Count</label>
-                <input type="number" class="form-control" name="sa_max_word" value="{{ sa_options.maximum_word_length }}">
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Use Case (Sensitivity)</label>
-                <select class="form-select" name="sa_use_case">
-                    <option value="0" {% if not sa_options.use_case %} selected {% endif %}>Case Insensitive (paris = Paris)</option>
-                    <option value="1" {% if sa_options.use_case %} selected {% endif %}>Case Sensitive (Paris != paris)</option>
-                </select>
-            </div>
+
             <div class="col-md-3">
                 <label class="form-label fw-bold">Max Mark</label>
                 <input type="number" step="0.1" class="form-control" name="sa_max_mark" value="{{ sa_options.maximum_mark }}">
@@ -27,6 +22,48 @@
                 <label class="form-label fw-bold small">Negative Mark</label>
                 <input type="number" step="0.1" class="form-control" name="sa_negative_mark" value="{{ sa_options.negative_mark }}">
             </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Max Word Count</label>
+                <input type="number" class="form-control" name="sa_max_word" value="{{ sa_options.maximum_word_length }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Case Sensitivity</label>
+                <select class="form-select" name="sa_use_case">
+                    <option value="0" {% if not sa_options.use_case %} selected {% endif %}>Case Insensitive (paris = Paris)</option>
+                    <option value="1" {% if sa_options.use_case %} selected {% endif %}>Case Sensitive (Paris != paris)</option>
+                </select>
+            </div>
+        </div>
+
+        <hr class="text-muted opacity-25">
+
+        <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-robot me-2 text-info"></i> Automated Grading</h5>
+
+        <div class="row g-3 bg-light rounded-3 p-3 border border-light-subtle">
+
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check form-switch fs-5 mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="sa_is_auto_marked" name="sa_is_auto_marked" value="1" {% if sa_options.is_auto_mark %} checked {% endif %}>
+                    <label class="form-check-label fs-6 fw-bold ms-2 mt-1" for="sa_is_auto_marked">Enable Auto-Marking Engine</label>
+                </div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check form-switch fs-5 mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="sa_exact_match_only" name="sa_exact_match_only" value="1" {% if sa_options.use_exact_answer %} checked {% endif %}>
+                    <label class="form-check-label fs-6 fw-bold ms-2 mt-1" for="sa_exact_match_only">Exact Match Only (Bypass AI)</label>
+                </div>
+            </div>
+
+            <div class="col-md-12 mt-4">
+                <label class="form-label fw-bold">Required Keywords</label>
+                <input type="text" class="form-control" name="sa_required_keywords" placeholder="e.g., cat,feline,kitten" value="{{ words_display }}">
+                <div class="form-text text-muted small mt-1">
+                    <i class="bi bi-info-circle-fill text-info me-1"></i>
+                    <strong>Important:</strong> Words and phrases must be split using a comma with <strong>no spaces between them</strong> (e.g., <code>photosynthesis,plant,create oxygen</code>).
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

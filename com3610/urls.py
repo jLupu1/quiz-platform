@@ -17,22 +17,18 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-
-import dashboard.views
+from courses import views as courses_views
 from com3610 import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('users/',include("django.contrib.auth.urls")),
-    path('',dashboard.views.index_dashboard,name='index'),
+    path('',courses_views.home_router,name='index'),
     path('courses/',include("courses.urls")),
 
     path('quizzes/',include("quizzes.urls")),
     path('questions/',include("questions.urls")),
-
-    # TODO remove dashboard and redirect to correct course page
-    path('dashboard/', include('dashboard.urls')),
 
 ]
 

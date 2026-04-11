@@ -11,7 +11,7 @@ from questions.models import Question, McqOption, ShortAnswerQuestionOption, Ess
     TextFiller, QuestionType
 from quizzes.models import Quiz, QuizQuestion
 from users.models import UserRole
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 
 
 # Create your views here.
@@ -32,6 +32,53 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
         return context
 
     def form_valid(self, form):
+        question_type = self.request.POST.get('question_type')
+
+        # (MCQ) Validation
+        if question_type == '0':
+            mcq_texts = self.request.POST.getlist('mcq_option_text')
+
+            # at least two options
+            if len(mcq_texts) < 2:
+                form.add_error(None, 'Multiple Choice questions require at least two options.')
+                return self.form_invalid(form)
+
+            # any of the provided options empty or just spaces
+            for text in mcq_texts:
+                if not text or not text.strip():
+                    form.add_error(None,
+                                   'All Multiple Choice options must contain text. Blank options are not allowed.')
+                    return self.form_invalid(form)
+
+        # Either/Or Validation
+        elif question_type == '1':
+            eo_texts = self.request.POST.getlist('eo_label_text')
+
+            # exactly two options
+            if len(eo_texts) != 2:
+                form.add_error(None, 'Either/Or questions must have exactly two options (e.g., True and False).')
+                return self.form_invalid(form)
+
+            # neither option can be blank
+            for text in eo_texts:
+                if not text or not text.strip():
+                    form.add_error(None, 'Both Either/Or options must contain text. Blank labels are not allowed.')
+                    return self.form_invalid(form)
+
+        # Short Answer Validation
+        elif question_type == '2':
+            sa_answer = self.request.POST.get('sa_answer')
+            if not sa_answer or not sa_answer.strip():
+                form.add_error(None, 'You must provide an Acceptable / Model Answer for Short Answer questions.')
+                return self.form_invalid(form)
+
+        # Essay Validation
+        elif question_type == '3':
+            essay_model_answer = self.request.POST.get('essay_model_answer')
+            if not essay_model_answer or not essay_model_answer.strip():
+                form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
+                return self.form_invalid(form)
+
         with transaction.atomic():
             question = form.save(commit=False)
             question.save()
@@ -45,8 +92,6 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
                 general_feedback=general_feedback,
                 order_sequence=order_sequence,
             )
-
-            question_type = self.request.POST.get('question_type')
 
             # MCQ
             if question_type == '0':
@@ -153,11 +198,64 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             context['eo_options'] = question.eitheroroption_set.all()
         elif question.question_type == 2:  # Short Answer
             context['sa_options'] = question.shortanswerquestionoption
+            if question.shortanswerquestionoption.required_words:
+                words_display = ""
+                for word in question.shortanswerquestionoption.required_words:
+                    words_display += word+','
+                context['words_display'] = words_display[:-1]
+
         elif question.question_type == 3:  #Essay
             context['essay_options'] = question.essayquestionoption
         return context
 
     def form_valid(self, form):
+        question_type = self.request.POST.get('question_type')
+
+        # (MCQ) Validation
+        if question_type == '0':
+            mcq_texts = self.request.POST.getlist('mcq_option_text')
+
+            # at least two options
+            if len(mcq_texts) < 2:
+                form.add_error(None, 'Multiple Choice questions require at least two options.')
+                return self.form_invalid(form)
+
+            # any of the provided options empty or just spaces
+            for text in mcq_texts:
+                if not text or not text.strip():
+                    form.add_error(None,
+                                   'All Multiple Choice options must contain text. Blank options are not allowed.')
+                    return self.form_invalid(form)
+
+        # Either/Or Validation
+        elif question_type == '1':
+            eo_texts = self.request.POST.getlist('eo_label_text')
+
+            # exactly two options
+            if len(eo_texts) != 2:
+                form.add_error(None, 'Either/Or questions must have exactly two options (e.g., True and False).')
+                return self.form_invalid(form)
+
+            # neither option can be blank
+            for text in eo_texts:
+                if not text or not text.strip():
+                    form.add_error(None, 'Both Either/Or options must contain text. Blank labels are not allowed.')
+                    return self.form_invalid(form)
+
+        # Short Answer Validation
+        elif question_type == '2':
+            sa_answer = self.request.POST.get('sa_answer')
+            if not sa_answer or not sa_answer.strip():
+                form.add_error(None, 'You must provide an Acceptable / Model Answer for Short Answer questions.')
+                return self.form_invalid(form)
+
+        # Essay Validation
+        elif question_type == '3':
+            essay_model_answer = self.request.POST.get('essay_model_answer')
+            if not essay_model_answer or not essay_model_answer.strip():
+                form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
+                return self.form_invalid(form)
+
         with transaction.atomic():
             quiz_question = form.save(commit=False)
             quiz_question.save()
@@ -179,16 +277,24 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
             # --- SHORT ANSWER ---
             elif q_type == 2:
-                sa_opt, created = ShortAnswerQuestionOption.objects.get_or_create(question=question)
-
-                max_words = self.request.POST.get('sa_max_word')
-
-                sa_opt.maximum_word_length = max_words if max_words else 0
-                sa_opt.use_case = (self.request.POST.get('sa_use_case') == '1')
-                sa_opt.answer_text = self.request.POST.get('sa_answer')
-                sa_opt.maximum_mark = self.request.POST.get('sa_max_mark') or 0
-                sa_opt.negative_mark = self.request.POST.get('sa_negative_mark') or 0
-                sa_opt.save()
+                # sa_opt, created = ShortAnswerQuestionOption.objects.get_or_create(question=question)
+                #
+                # max_words = self.request.POST.get('sa_max_word')
+                #
+                # sa_opt.maximum_word_length = max_words if max_words else 0
+                # sa_opt.use_case = (self.request.POST.get('sa_use_case') == '1')
+                # sa_opt.answer_text = self.request.POST.get('sa_answer')
+                # sa_opt.maximum_mark = self.request.POST.get('sa_max_mark') or 0
+                # sa_opt.negative_mark = self.request.POST.get('sa_negative_mark') or 0
+                # sa_opt.is_auto_marked = self.request.POST.get('sa_is_auto_marked')
+                # sa_opt.exact_match = self.request.POST.get('sa_exact_match_only')
+                #
+                # required_words = self.request.POST.get('sa_required_keywords')
+                # sa_opt.required_words = required_words.split(',')
+                #
+                #
+                # sa_opt.save()
+                create_sa_question(self.request, question)
 
             # --- ESSAY ---
             elif q_type == 3:
@@ -283,6 +389,17 @@ def create_sa_question(request, question):
     answer = request.POST.get('sa_answer')
     max_marks = request.POST.get('sa_max_mark')
     negative_marks = request.POST.get('sa_negative_mark')
+    is_auto_marked = request.POST.get('sa_is_auto_marked') == '1'
+    exact_match = request.POST.get('sa_exact_match_only') == '1'
+
+
+    required_words = request.POST.get('sa_required_keywords')
+    cleaned_words = []
+    if required_words:
+        cleaned_words = [w.strip() for w in required_words.split(',') if w.strip()]
+
+    if getattr(question, 'shortanswerquestionoption',False):
+        question.shortanswerquestionoption.delete()
 
     ShortAnswerQuestionOption.objects.create(
         question=question,
@@ -291,6 +408,9 @@ def create_sa_question(request, question):
         answer_text=answer,
         maximum_mark=max_marks if max_marks else 0,
         negative_mark=negative_marks if negative_marks else 0,
+        required_words=cleaned_words,
+        is_auto_mark=is_auto_marked,
+        use_exact_answer=exact_match
     )
 
 def create_essay_question(request, question):
@@ -299,6 +419,8 @@ def create_essay_question(request, question):
     max_marks = request.POST.get('essay_max_mark')
     negative_marks = request.POST.get('essay_negative_mark')
     model_answer = request.POST.get('essay_model_answer')
+
+    question.essayquestionoption.delete()
 
     EssayQuestionOption.objects.create(
         question=question,
