@@ -91,6 +91,13 @@ class CustomLoginView(UserPassesTestMixin,LoginView):
 
     def test_func(self):
         return not self.request.user.is_authenticated
+    def get_success_url(self):
+        user = self.request.user
+
+        if user.is_admin:
+            return reverse_lazy('admin_course_list')
+
+        return reverse_lazy('courses')
 
 
 class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
