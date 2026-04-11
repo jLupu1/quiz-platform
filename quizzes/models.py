@@ -23,7 +23,7 @@ class Quiz (models.Model):
 
     name = models.CharField(max_length=100)
     introduction = models.TextField(null=True, blank=True)
-    # TODO password
+    password = models.CharField(max_length=100, null=True, blank=True)
     # TODO Subnet
     overall_feedback = models.TextField(null=True, blank=True)
     shuffle_questions = models.BooleanField(default=False)

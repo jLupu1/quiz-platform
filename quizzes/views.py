@@ -62,7 +62,7 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         'shuffle_questions', 'shuffle_answers', 'review_attempt',
         'review_right_answer', 'review_marks', 'review_specific_feedback',
         'review_general_feedback', 'review_overall_feedback', 'show_user_picture',
-        'anonymise_student', 'anonymise_marker'
+        'anonymise_student', 'anonymise_marker', 'password'
     ]
 
     def test_func(self):
@@ -112,28 +112,27 @@ def quiz_landing_page(request, quiz_id):
         messages.error(request, "This quiz is not currently open for attempts.")
         return redirect('course_detail',pk=quiz.course_id)
 
-    past_attempts = Attempt.objects.filter(quiz=quiz).order_by('-start_time')
+    past_attempts = Attempt.objects.filter(quiz=quiz,user=request.user).order_by('-start_time')
     attempt_count = past_attempts.count()
 
     latest_attempt = past_attempts.first()
-    if latest_attempt and not latest_attempt.is_time_up and not latest_attempt.is_completed:
-#         resume the attempt
-        return redirect('take_quiz', attempt_id=latest_attempt.id)
+
+    if quiz.time_limit:
+        if latest_attempt and not latest_attempt.is_time_up and not latest_attempt.is_completed:
+    #         resume the attempt
+            return redirect('take_quiz', attempt_id=latest_attempt.id)
+    else:
+        if latest_attempt and not latest_attempt.is_completed:
+            return redirect('take_quiz', attempt_id=latest_attempt.id)
 
     # if start new attempt clicked
     if request.method == "POST":
-        # -1 attempt mean unlimited
-        if quiz.maximum_attempts != -1 and attempt_count >= quiz.maximum_attempts:
-            #too many attempts
-            messages.error(request, "You have used all of your attempts")
-            return redirect('course_detail', course_id=quiz.course_id)
+        new_attempt = create_new_attempt(request.user, quiz)
 
-        # start new attempt
-        new_attempt = Attempt.objects.create(
-            quiz=quiz,
-            user=request.user,
-            attempt_count=attempt_count + 1,
-        )
+        if not new_attempt:
+            messages.error(request, "You have used all of your attempts")
+            return redirect('course_detail', pk=quiz.course_id)
+
         return redirect('take_quiz', attempt_id=new_attempt.id)
 
     # This is the get to show the landing page
@@ -143,6 +142,37 @@ def quiz_landing_page(request, quiz_id):
         'attempts_left' : quiz.maximum_attempts - attempt_count if quiz.maximum_attempts != -1 else 'Unlimited',
     }
     return render(request, 'student/quiz_landing_page.html', context)
+
+
+@login_required(login_url='/users/login/')
+def password_checker(request, quiz_id):
+    if not is_student_enrolled(request, quiz_id):
+        raise PermissionDenied("You can't take this quiz as you are not enrolled in this module/course")
+
+    quiz = get_object_or_404(Quiz, pk=quiz_id)
+
+    if request.method == "POST":
+        password_input = request.POST.get('quiz_password')  # Must be uppercase POST
+
+        if password_input and password_input == quiz.password:
+            new_attempt = create_new_attempt(request.user, quiz)
+
+            if not new_attempt:
+                response = HttpResponse()
+                messages.error(request, "You have used all of your attempts")
+                response['HX-Redirect'] = reverse('course_detail', kwargs={'pk': quiz.course_id})
+                return response
+
+            response = HttpResponse()
+            response['HX-Redirect'] = reverse('take_quiz', kwargs={'attempt_id': new_attempt.id})
+            return response
+
+        else:
+            return render(request, 'partials/password_prompt_partial.html', {
+                'quiz': quiz,
+                'error': 'Incorrect password. Please try again.'
+            })
+    return render(request, 'partials/password_prompt_partial.html', {'quiz': quiz})
 
 class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "student/student_quiz_view.html"
@@ -155,18 +185,25 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         attempt = get_object_or_404(Attempt, id=self.kwargs['attempt_id'], user=self.request.user)
+        context = self.get_context_data(**kwargs)
 
         if not attempt.quiz.is_currently_available:
             messages.error(request, "This quiz has been closed.")
             return redirect('course_detail', course_id=attempt.quiz.course_id)
 
-        if attempt.is_completed or attempt.is_time_up:
-            return redirect('quiz_landing', quiz_id=attempt.quiz.id)
+        if attempt.quiz.time_limit:
+            if attempt.is_completed or attempt.is_time_up:
+                return redirect('quiz_landing', quiz_id=attempt.quiz.id)
 
-        context = self.get_context_data(**kwargs)
-        context['attempt'] = attempt
-        context['deadline_time'] = attempt.deadline.isoformat()
-        context['start_time'] = attempt.start_time.isoformat()
+            context['attempt'] = attempt
+            context['deadline_time'] = attempt.deadline.isoformat()
+            context['start_time'] = attempt.start_time.isoformat()
+        else:
+            if attempt.is_completed:
+                return redirect('quiz_landing', quiz_id=attempt.quiz.id)
+            context['attempt'] = attempt
+
+
 
          # TODO shuffle the list ...
         context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
@@ -188,8 +225,9 @@ def question_engine(request, attempt_id, question_id):
     #TODO shuffle the list ...
     current_question_number = question_list.index(quiz_question) + 1
 
-    if attempt.is_time_up:
-        return HttpResponseForbidden("Time is up! Answers can no longer be saved.")
+    if attempt.quiz.time_limit:
+        if attempt.is_time_up:
+            return HttpResponseForbidden("Time is up! Answers can no longer be saved.")
 
     successfully_saved = False
     existing_response = None
@@ -617,3 +655,17 @@ def user_is_enrolled(request, quiz_or_course_id, id_type='quiz'):
     else:
         course = get_object_or_404(Course, id=quiz_or_course_id)
     return course.enrollment.filter(id=request.user.id).exists()
+
+def create_new_attempt(user, quiz):
+    """Helper function to  generate a new attempt."""
+    attempt_count = Attempt.objects.filter(quiz=quiz, user=user).count()
+
+    if quiz.maximum_attempts != -1 and attempt_count >= quiz.maximum_attempts:
+        return None  # Failed to create due to limits
+
+    new_attempt = Attempt.objects.create(
+        quiz=quiz,
+        user=user,
+        attempt_count=attempt_count + 1,
+    )
+    return new_attempt

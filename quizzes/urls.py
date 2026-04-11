@@ -10,6 +10,7 @@ urlpatterns = [
 
     # Take quiz
     path('quiz/<int:quiz_id>/info/', views.quiz_landing_page, name='quiz_landing'),
+    path('quiz/<int:quiz_id>/password/',views.password_checker,name='quiz_password_prompt'),
     path('attempt/<int:attempt_id>/take/', views.StudentTakeQuiz.as_view(), name='take_quiz'),
     path('attempt/<attempt_id>/question/<question_id>/',views.question_engine,name='question_engine'),
     path('attempt/<int:attempt_id>/submit/', views.submit_quiz, name='submit_quiz'),
