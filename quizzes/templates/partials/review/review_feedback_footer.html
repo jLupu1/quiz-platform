@@ -5,12 +5,12 @@
     </div>
 {% endif %}
 
-{% if quiz.review_marks %}
+{% if quiz.review_marks or request.user.is_staff_member %}
     <div class="position-absolute bottom-0 end-0 m-4 text-center">
         <div class="badge bg-dark px-3 py-1 mb-2 shadow-sm rounded-1">
             Marks Awarded
         </div>
-        <div class="d-block">
+        <div class="d-block" id="question-score-badge-{{ response.id }}">
             {% if response.marks_given == None %}
                 <span class="badge rounded-pill fs-6 px-4 py-2 shadow-sm bg-warning text-dark border border-warning-subtle">
                     <i class="bi bi-hourglass-split me-1"></i> Pending

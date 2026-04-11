@@ -66,8 +66,6 @@ class Quiz (models.Model):
     def is_currently_available(self):
         """This evaluates all rules in real-time."""
 
-        if self.close_date and timezone.now() > self.close_date:
-            return False
         #no qs?
         if not self.quizquestion_set.exists():
             return False
@@ -83,6 +81,8 @@ class Quiz (models.Model):
         # scheduled/auto
         if self.status == self.QuizStatus.SCHEDULED:
             now = timezone.now()
+            if self.close_date and timezone.now() > self.close_date:
+                return False
 
             if self.open_date and self.close_date:
                 if self.open_date <= now <= self.close_date:
