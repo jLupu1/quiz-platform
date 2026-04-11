@@ -112,7 +112,7 @@ def quiz_landing_page(request, quiz_id):
         messages.error(request, "This quiz is not currently open for attempts.")
         return redirect('course_detail',pk=quiz.course_id)
 
-    past_attempts = Attempt.objects.filter(quiz=quiz).order_by('-start_time')
+    past_attempts = Attempt.objects.filter(quiz=quiz,user=request.user).order_by('-start_time')
     attempt_count = past_attempts.count()
 
     latest_attempt = past_attempts.first()

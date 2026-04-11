@@ -420,11 +420,12 @@ def create_essay_question(request, question):
     negative_marks = request.POST.get('essay_negative_mark')
     model_answer = request.POST.get('essay_model_answer')
 
-    question.essayquestionoption.delete()
+    if getattr(question, 'essayquestionoption',False):
+        question.essayquestionoption.delete()
 
     EssayQuestionOption.objects.create(
         question=question,
-        minimum_word_count=min_words if min_words else None,
+        minimum_word_count=min_words if min_words else 0,
         maximum_word_count=max_words if max_words else None,
         maximum_mark=max_marks if max_marks else 0,
         negative_mark=negative_marks if negative_marks else 0,
