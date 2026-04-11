@@ -277,38 +277,11 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
             # --- SHORT ANSWER ---
             elif q_type == 2:
-                # sa_opt, created = ShortAnswerQuestionOption.objects.get_or_create(question=question)
-                #
-                # max_words = self.request.POST.get('sa_max_word')
-                #
-                # sa_opt.maximum_word_length = max_words if max_words else 0
-                # sa_opt.use_case = (self.request.POST.get('sa_use_case') == '1')
-                # sa_opt.answer_text = self.request.POST.get('sa_answer')
-                # sa_opt.maximum_mark = self.request.POST.get('sa_max_mark') or 0
-                # sa_opt.negative_mark = self.request.POST.get('sa_negative_mark') or 0
-                # sa_opt.is_auto_marked = self.request.POST.get('sa_is_auto_marked')
-                # sa_opt.exact_match = self.request.POST.get('sa_exact_match_only')
-                #
-                # required_words = self.request.POST.get('sa_required_keywords')
-                # sa_opt.required_words = required_words.split(',')
-                #
-                #
-                # sa_opt.save()
                 create_sa_question(self.request, question)
 
             # --- ESSAY ---
             elif q_type == 3:
-                essay_opt, created = EssayQuestionOption.objects.get_or_create(question=question)
-
-                min_words = self.request.POST.get('essay_minword')
-                max_words = self.request.POST.get('essay_maxword')
-
-                essay_opt.minimum_word_length = min_words if min_words else 0
-                essay_opt.maximum_word_length = max_words if max_words else 0
-                essay_opt.maximum_mark = self.request.POST.get('essay_max_mark') or 0
-                essay_opt.negative_mark = self.request.POST.get('essay_negative_mark') or 0
-                essay_opt.model_answer = self.request.POST.get('essay_model_answer')
-                essay_opt.save()
+                create_essay_question(self.request, question)
 
             # --- TEXT FILLER ---
             elif q_type == 4:
