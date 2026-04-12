@@ -24,7 +24,6 @@ class CoursesView(LoginRequiredMixin, ListView):
     template_name = 'courses/courses.html'
 
     def get_queryset(self):
-        print(self.request.user.enrolled_courses.all())
         return self.request.user.enrolled_courses.all()
     def handle_no_permission(self):
         return redirect('/users/login')

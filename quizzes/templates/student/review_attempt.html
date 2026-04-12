@@ -123,8 +123,6 @@
                     </div>
             {% endif %}
             {% if request.user.is_staff_member %}
-                {{ question_max_marks }}
-            	
                 <div id="score-widget-container">
                     {% with response=attempt.responses.first %}
                         {% if response %}
