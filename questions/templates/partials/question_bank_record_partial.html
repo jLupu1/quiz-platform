@@ -1,6 +1,6 @@
-{% for added_question in object_list %}
+{% for added_question in questions %}
 <tr>
-    <td class="py-3 fw-bold "> {{ added_question.order_sequence}}</td>
+    <td class="py-3 fw-bold "> {{ added_question.question.id}}</td>
     <td class="py-3"> {{ added_question.question.question_text }}</td>
     <td class="py-3"> {{ added_question.question.get_question_type_display }}</td>
 
