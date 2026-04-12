@@ -202,7 +202,12 @@ class Attempt (models.Model):
 
     @property
     def deadline(self):
-        return self.start_time + timedelta(minutes=float(self.quiz.time_limit))
+        multiplier = 1
+        if self.user.arrangement:
+            if self.user.arrangement.extra_time:
+                multiplier = 1 + (self.user.arrangement.extra_time/100)
+        adjusted_time_limit = self.quiz.time_limit * multiplier
+        return self.start_time + timedelta(minutes=float(adjusted_time_limit))
 
     @property
     def is_time_up(self):
