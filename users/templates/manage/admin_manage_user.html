@@ -222,9 +222,14 @@
                         <hr class="my-4 text-muted">
 
                         <div class="d-flex gap-3 justify-content-end">
-                            <a href="{% url 'admin_user_list' %}" class="btn btn-light border px-4 rounded-2 fw-medium">
+                            {% if source %}
+                                <input type="button" value="Cancel" onclick="history.go(-1)" class="btn btn-light border px-4 rounded-2 fw-medium">
+                            {% else %}
+                                <a href="{% url 'admin_user_list' %}" class="btn btn-light border px-4 rounded-2 fw-medium">
                                 Cancel
-                            </a>
+                                </a>
+                            {% endif %}
+
                             <button form='update-user-form' type="submit"
                                     class="btn btn-primary px-4 rounded-2 fw-medium">
                                 <i class="bi bi-floppy-fill me-1"></i> Save

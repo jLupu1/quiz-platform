@@ -60,6 +60,7 @@ class UpdateUserView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['source'] = self.request.GET.get('source')
         context['enrolled_courses'] = self.object.enrolled_courses.all()
         return context
 
