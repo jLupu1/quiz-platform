@@ -12,13 +12,18 @@ from users.models import UserRole
 
 
 # Create your views here.
+@login_required(login_url='/users/login')
+def home_router(request):
+    if request.user.is_admin:
+        return redirect('admin_course_list')
+    else:
+        return redirect('courses')
 class CoursesView(LoginRequiredMixin, ListView):
     model = Course
     context_object_name = 'courses'
     template_name = 'courses/courses.html'
 
     def get_queryset(self):
-        print(self.request.user.enrolled_courses.all())
         return self.request.user.enrolled_courses.all()
     def handle_no_permission(self):
         return redirect('/users/login')

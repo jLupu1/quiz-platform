@@ -10,7 +10,7 @@
 
         <div class="ps-md-5 mb-4">
             <label class="fw-bold text-muted mb-2 text-uppercase small">Your Response:</label>
-            <textarea class="form-control fs-5 bg-light text-dark mb-3" rows="6" disabled>{{ response.text_answer|default:'[No Essay Provided]' }}</textarea>
+            <textarea class="form-control fs-5 bg-light text-dark mb-3" rows="6" disabled>{{ response.answer_given|default:'[No Essay Provided]' }}</textarea>
 
             {% if response.manual_grading_feedback %}
                 <div class="p-3 bg-warning-subtle border border-warning rounded-2 mt-3">
@@ -23,3 +23,9 @@
         {% include 'partials/review/review_feedback_footer.html' %}
     </div>
 </div>
+
+{% if request.htmx %}
+    <div id="score-widget-container" hx-swap-oob="true">
+        {% include 'partials/teacher/update_mark_partial.html' %}
+    </div>
+{% endif %}

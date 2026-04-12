@@ -14,13 +14,19 @@
     <div class="mb-3 flex-grow-1">
         <textarea class="form-control rounded-1 border-dark-subtle shadow-sm h-100" 
                   style="min-height: 250px;" 
-                  name="answer_text" 
+                  name="answer_text"
+                  id="answer_text"
+                  oninput="count_words({% if quiz_question.question.essayquestionoption.maximum_word_count %}
+                       {{ quiz_question.question.essayquestionoption.maximum_word_count }}
+                       {% else %} null
+                       {% endif %})"
                   placeholder="Type your answer here...">{{ existing_response.answer_given|default_if_none:"" }}</textarea>
     </div>
 
     <div class="d-flex justify-content-between align-items-end mt-2">
         <div class="small">
-            <p class="text-muted mb-0" style="font-size: 0.75rem;">Max words: {{ quiz_question.question.maximum_word_count|default:"No limit" }}</p>
+            <p class="text-dark fw-bold mb-1" style="font-size: 0.85rem;">Word count: <span class="fw-normal" id="word_count">0</span></p>
+            <p class="text-muted mb-0" style="font-size: 0.75rem;">Max words: {{ quiz_question.question.essayquestionoption.maximum_word_count|default:"No limit" }}</p>
         </div>
         
         <div class="d-flex align-items-center">

@@ -51,7 +51,7 @@
                                     <i class="bi bi-calendar-check text-success me-1"></i> Opens: {{ quiz.open_date|date:"M d, Y - h:i A"|default:"Now" }}
                                 </div>
                                 <div>
-                                    <i class="bi bi-calendar-x text-danger me-1"></i> Closes: {{ quiz.close_date|date:"M d, Y - h:i A"|default:"No limit" }}
+                                    <i class="bi bi-calendar-x text-danger me-1"></i> Closes: {{ quiz.close_date|date:"M d, Y - h:i A"|default:"No Close Date" }}
                                 </div>
                             </div>
                         </div>
@@ -153,7 +153,7 @@
                         <span class="small fw-medium text-center lh-sm">New Quiz</span>
                     </a>
 
-                    <a href="#" class="btn btn-light border border-dark rounded-2 d-flex flex-column justify-content-center align-items-center p-2 text-dark text-decoration-none shadow-sm" style="width: 120px; height: 110px;">
+                    <a href="{% url 'question_bank' course.id %}" class="btn btn-light border border-dark rounded-2 d-flex flex-column justify-content-center align-items-center p-2 text-dark text-decoration-none shadow-sm" style="width: 120px; height: 110px;">
                         <i class="bi bi-collection fs-3 mb-2"></i>
                         <span class="small fw-medium text-center lh-sm">Question<br>Bank</span>
                     </a>
@@ -162,12 +162,6 @@
                         <i class="bi bi-archive fs-3 mb-2"></i>
                         <span class="small fw-medium text-center lh-sm">View all<br>Quizzes</span>
                     </a>
-
-                    <a href="#" class="btn btn-light border border-dark rounded-2 d-flex flex-column justify-content-center align-items-center p-2 text-dark text-decoration-none shadow-sm" style="width: 120px; height: 110px;">
-                        <i class="bi bi-bar-chart-line fs-3 mb-2"></i>
-                        <span class="small fw-medium text-center lh-sm">Class<br>Performance</span>
-                    </a>
-
                 </div>
             </div>
         </div>

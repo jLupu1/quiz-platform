@@ -32,3 +32,9 @@
         {% include 'partials/review/review_feedback_footer.html' %}
     </div>
 </div>
+
+{% if request.htmx %}
+    <div id="score-widget-container" hx-swap-oob="true">
+        {% include 'partials/teacher/update_mark_partial.html' %}
+    </div>
+{% endif %}

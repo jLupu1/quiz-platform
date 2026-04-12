@@ -62,19 +62,25 @@
                     <div class="collapse" id="collapseTiming">
                         <div class="card-body p-4">
                             <div class="row g-4">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold">{{ form.open_date.label }}</label>
                                     {{ form.open_date }}
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold">{{ form.close_date.label }}</label>
                                     {{ form.close_date }}
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label fw-bold">{{ form.time_limit.label }}</label>
                                     <div class="input-group">
                                         {{ form.time_limit }}
                                         <span class="input-group-text bg-light">mins</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label fw-bold">{{ form.password.label }}</label>
+                                    <div class="input-group">
+                                        {{ form.password }}
                                     </div>
                                 </div>
                             </div>

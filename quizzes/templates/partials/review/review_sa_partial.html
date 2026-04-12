@@ -10,9 +10,9 @@
 
         <div class="ps-md-5 mb-4">
             <label class="fw-bold text-muted mb-2 text-uppercase small">Your Answer:</label>
-            <input type="text" class="form-control fs-5 bg-light text-dark mb-3" value="{{ response.answer_given|default:'[No Answer Provided]' }}" disabled>
+            <textarea rows="4" type="text" class="form-control fs-5 bg-light text-dark mb-3" disabled>{{ response.answer_given|default:'[No Answer Provided]' }}</textarea>
 
-            {% if quiz.review_right_answer and response.marks_given == 0 %}
+            {% if quiz.review_right_answer %}
                 <div class="p-3 bg-success-subtle border border-success rounded-2 mt-3">
                     <span class="d-block fw-bold text-success mb-1 small text-uppercase">Expected Answer:</span>
                     <span class="text-dark fs-5">{{ response.quiz_question.question.shortanswerquestionoption.answer_text}}</span>
@@ -23,3 +23,9 @@
         {% include 'partials/review/review_feedback_footer.html' %}
     </div>
 </div>
+
+{% if request.htmx %}
+    <div id="score-widget-container" hx-swap-oob="true">
+        {% include 'partials/teacher/update_mark_partial.html' %}
+    </div>
+{% endif %}

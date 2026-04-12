@@ -1,3 +1,5 @@
+from os import pathconf_names
+
 from django.urls import path
 from quizzes import views
 
@@ -8,6 +10,7 @@ urlpatterns = [
 
     # Take quiz
     path('quiz/<int:quiz_id>/info/', views.quiz_landing_page, name='quiz_landing'),
+    path('quiz/<int:quiz_id>/password/',views.password_checker,name='quiz_password_prompt'),
     path('attempt/<int:attempt_id>/take/', views.StudentTakeQuiz.as_view(), name='take_quiz'),
     path('attempt/<attempt_id>/question/<question_id>/',views.question_engine,name='question_engine'),
     path('attempt/<int:attempt_id>/submit/', views.submit_quiz, name='submit_quiz'),
@@ -19,8 +22,9 @@ urlpatterns = [
     path('attempt/<int:attempt_id>/review/question/<int:quiz_question_id>/', views.review_response, name='review_response'),
 
 #  Teacher REview
-    path('quiz/<int:quiz_id>/teacher/user-attempts',views.teacher_student_attempt_list,name='teacher_student_attempt_list'),
-    path('quiz/<int:quiz_id>/teacher/user-attempts/search-user', views.search_quiz_students, name='search_quiz_students'),
-    path('quiz-list/<int:course_id>',views.quiz_list,name='quiz_list'),
-    path('quiz-list/<int:course_id>/search-quiz', views.search_quiz, name='search_quiz'),
+    path('quiz/<int:quiz_id>/teacher/user-attempts/',views.teacher_student_attempt_list,name='teacher_student_attempt_list'),
+    path('quiz/response/<int:response_id>/teacher/update-score/',views.update_student_marks,name='update_student_marks'),
+    path('quiz/<int:quiz_id>/teacher/user-attempts/search-user/', views.search_quiz_students, name='search_quiz_students'),
+    path('quiz-list/<int:course_id>/',views.quiz_list,name='quiz_list'),
+    path('quiz-list/<int:course_id>/search-quiz/', views.search_quiz, name='search_quiz'),
 ]

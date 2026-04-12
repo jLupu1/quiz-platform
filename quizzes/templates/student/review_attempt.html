@@ -23,10 +23,12 @@
                     <span class="small fw-bold text-uppercase tracking-wide">Total Marks Awarded</span>
                 </div>
             {% if quiz.review_marks or request.user.is_staff_member%}
-                <div class="card-body text-center py-3">
-                    <h2 class="display-5 fw-bold mb-0">
-                        {{ attempt.total_marks_given|default:"0" }}<span class="text-muted fs-4">/{{ quiz.maximum_marks }}</span>
-                    </h2>
+                <div id="total-marks-container" hx-swap-oob="true">
+                    <div class="card-body text-center py-3">
+                        <h2 class="display-5 fw-bold mb-0">
+                            {{ attempt.total_marks_given|default:"0" }}<span class="text-muted fs-4">/{{ quiz.maximum_marks }}</span>
+                        </h2>
+                    </div>
                 </div>
                 {% else %}
                     <div class="card-body text-center py-3">
@@ -52,15 +54,15 @@
                     <div class="d-flex flex-column align-items-center gap-3">
 
                         {% for resp in attempt.responses.all|dictsort:"quiz_question.order_sequence" %}
-                            <button class="btn fw-bold p-0 shadow-sm
+                            <button id="nav-button-{{ resp.id }}"
+                                    class="btn fw-bold p-0 shadow-sm
                                            {% if resp.marks_given > 0 %}btn-success
                                            {% elif resp.marks_given == 0 %}btn-danger
                                            {% else %}btn-warning{% endif %}"
                                     style="width: 45px; height: 45px; line-height: 43px;"
                                     hx-get="{% url 'review_response' attempt.id resp.quiz_question.id %}"
                                     hx-target="#center-review-container"
-                                    hx-swap="innerHTML"
-                                    {% if resp.is_skipped %}data-bs-toggle="tooltip" title="Skipped"{% endif %}>
+                                    hx-swap="innerHTML">
                                 {{ resp.quiz_question.order_sequence }}
                             </button>
                         {% endfor %}
@@ -120,16 +122,18 @@
                         </div>
                     </div>
             {% endif %}
+            {% if request.user.is_staff_member %}
+                <div id="score-widget-container">
+                    {% with response=attempt.responses.first %}
+                        {% if response %}
+                            {% include 'partials/teacher/update_mark_partial.html' %}
+                        {% else %}
+                            <p class="text-muted text-center mt-5">No questions found.</p>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
-    });
-</script>
 {% endblock %}

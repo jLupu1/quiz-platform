@@ -23,7 +23,7 @@ class Quiz (models.Model):
 
     name = models.CharField(max_length=100)
     introduction = models.TextField(null=True, blank=True)
-    # TODO password
+    password = models.CharField(max_length=100, null=True, blank=True)
     # TODO Subnet
     overall_feedback = models.TextField(null=True, blank=True)
     shuffle_questions = models.BooleanField(default=False)
@@ -66,8 +66,6 @@ class Quiz (models.Model):
     def is_currently_available(self):
         """This evaluates all rules in real-time."""
 
-        if self.close_date and timezone.now() > self.close_date:
-            return False
         #no qs?
         if not self.quizquestion_set.exists():
             return False
@@ -83,6 +81,8 @@ class Quiz (models.Model):
         # scheduled/auto
         if self.status == self.QuizStatus.SCHEDULED:
             now = timezone.now()
+            if self.close_date and timezone.now() > self.close_date:
+                return False
 
             if self.open_date and self.close_date:
                 if self.open_date <= now <= self.close_date:
@@ -202,7 +202,12 @@ class Attempt (models.Model):
 
     @property
     def deadline(self):
-        return self.start_time + timedelta(minutes=float(self.quiz.time_limit))
+        multiplier = 1
+        if self.user.arrangement:
+            if self.user.arrangement.extra_time:
+                multiplier = 1 + (self.user.arrangement.extra_time/100)
+        adjusted_time_limit = self.quiz.time_limit * multiplier
+        return self.start_time + timedelta(minutes=float(adjusted_time_limit))
 
     @property
     def is_time_up(self):
@@ -217,6 +222,11 @@ class Attempt (models.Model):
                 response.auto_grade()
                 total_marks += (response.marks_given or 0)
         self.total_marks_given = total_marks
+        self.save()
+
+    def calculate_total_score(self):
+        total = sum(response.marks_given for response in self.responses.all() if response.marks_given is not None)
+        self.total_marks_given = total
         self.save()
 
 

@@ -1,15 +1,18 @@
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods, require_POST
 from django.views.generic import CreateView, UpdateView, TemplateView
 
+import services
 from courses.models import Course
 from questions.models import QuestionType
 from quizzes.forms import CreateQuizForm
@@ -59,7 +62,7 @@ class EditQuiz(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         'shuffle_questions', 'shuffle_answers', 'review_attempt',
         'review_right_answer', 'review_marks', 'review_specific_feedback',
         'review_general_feedback', 'review_overall_feedback', 'show_user_picture',
-        'anonymise_student', 'anonymise_marker'
+        'anonymise_student', 'anonymise_marker', 'password'
     ]
 
     def test_func(self):
@@ -109,28 +112,27 @@ def quiz_landing_page(request, quiz_id):
         messages.error(request, "This quiz is not currently open for attempts.")
         return redirect('course_detail',pk=quiz.course_id)
 
-    past_attempts = Attempt.objects.filter(quiz=quiz).order_by('-start_time')
+    past_attempts = Attempt.objects.filter(quiz=quiz,user=request.user).order_by('-start_time')
     attempt_count = past_attempts.count()
 
     latest_attempt = past_attempts.first()
-    if latest_attempt and not latest_attempt.is_time_up and not latest_attempt.is_completed:
-#         resume the attempt
-        return redirect('take_quiz', attempt_id=latest_attempt.id)
+
+    if quiz.time_limit:
+        if latest_attempt and not latest_attempt.is_time_up and not latest_attempt.is_completed:
+    #         resume the attempt
+            return redirect('take_quiz', attempt_id=latest_attempt.id)
+    else:
+        if latest_attempt and not latest_attempt.is_completed:
+            return redirect('take_quiz', attempt_id=latest_attempt.id)
 
     # if start new attempt clicked
     if request.method == "POST":
-        # -1 attempt mean unlimited
-        if quiz.maximum_attempts != -1 and attempt_count >= quiz.maximum_attempts:
-            #too many attempts
-            messages.error(request, "You have used all of your attempts")
-            return redirect('course_detail', course_id=quiz.course_id)
+        new_attempt = create_new_attempt(request.user, quiz)
 
-        # start new attempt
-        new_attempt = Attempt.objects.create(
-            quiz=quiz,
-            user=request.user,
-            attempt_count=attempt_count + 1,
-        )
+        if not new_attempt:
+            messages.error(request, "You have used all of your attempts")
+            return redirect('course_detail', pk=quiz.course_id)
+
         return redirect('take_quiz', attempt_id=new_attempt.id)
 
     # This is the get to show the landing page
@@ -140,6 +142,37 @@ def quiz_landing_page(request, quiz_id):
         'attempts_left' : quiz.maximum_attempts - attempt_count if quiz.maximum_attempts != -1 else 'Unlimited',
     }
     return render(request, 'student/quiz_landing_page.html', context)
+
+
+@login_required(login_url='/users/login/')
+def password_checker(request, quiz_id):
+    if not is_student_enrolled(request, quiz_id):
+        raise PermissionDenied("You can't take this quiz as you are not enrolled in this module/course")
+
+    quiz = get_object_or_404(Quiz, pk=quiz_id)
+
+    if request.method == "POST":
+        password_input = request.POST.get('quiz_password')  # Must be uppercase POST
+
+        if password_input and password_input == quiz.password:
+            new_attempt = create_new_attempt(request.user, quiz)
+
+            if not new_attempt:
+                response = HttpResponse()
+                messages.error(request, "You have used all of your attempts")
+                response['HX-Redirect'] = reverse('course_detail', kwargs={'pk': quiz.course_id})
+                return response
+
+            response = HttpResponse()
+            response['HX-Redirect'] = reverse('take_quiz', kwargs={'attempt_id': new_attempt.id})
+            return response
+
+        else:
+            return render(request, 'partials/password_prompt_partial.html', {
+                'quiz': quiz,
+                'error': 'Incorrect password. Please try again.'
+            })
+    return render(request, 'partials/password_prompt_partial.html', {'quiz': quiz})
 
 class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = "student/student_quiz_view.html"
@@ -152,18 +185,25 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         attempt = get_object_or_404(Attempt, id=self.kwargs['attempt_id'], user=self.request.user)
+        context = self.get_context_data(**kwargs)
 
         if not attempt.quiz.is_currently_available:
             messages.error(request, "This quiz has been closed.")
             return redirect('course_detail', course_id=attempt.quiz.course_id)
 
-        if attempt.is_completed or attempt.is_time_up:
-            return redirect('quiz_landing', quiz_id=attempt.quiz.id)
+        if attempt.quiz.time_limit:
+            if attempt.is_completed or attempt.is_time_up:
+                return redirect('quiz_landing', quiz_id=attempt.quiz.id)
 
-        context = self.get_context_data(**kwargs)
-        context['attempt'] = attempt
-        context['deadline_time'] = attempt.deadline.isoformat()
-        context['start_time'] = attempt.start_time.isoformat()
+            context['attempt'] = attempt
+            context['deadline_time'] = attempt.deadline.isoformat()
+            context['start_time'] = attempt.start_time.isoformat()
+        else:
+            if attempt.is_completed:
+                return redirect('quiz_landing', quiz_id=attempt.quiz.id)
+            context['attempt'] = attempt
+
+
 
          # TODO shuffle the list ...
         context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
@@ -185,8 +225,9 @@ def question_engine(request, attempt_id, question_id):
     #TODO shuffle the list ...
     current_question_number = question_list.index(quiz_question) + 1
 
-    if attempt.is_time_up:
-        return HttpResponseForbidden("Time is up! Answers can no longer be saved.")
+    if attempt.quiz.time_limit:
+        if attempt.is_time_up:
+            return HttpResponseForbidden("Time is up! Answers can no longer be saved.")
 
     successfully_saved = False
     existing_response = None
@@ -258,8 +299,10 @@ def question_engine(request, attempt_id, question_id):
 @require_POST
 def submit_quiz(request, attempt_id):
     attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
+
     if not is_student_enrolled(request,attempt.quiz_id ):
         raise PermissionDenied('You are not enrolled to this course')
+
 
     # prevent double-submission
     if attempt.is_completed:
@@ -269,7 +312,8 @@ def submit_quiz(request, attempt_id):
     attempt.is_completed = True
     attempt.submitted_at = timezone.now()
     attempt.save()
-    attempt.grade_attempt()
+
+    services.process_quiz_submission(attempt)
 
     # send them to the results page
     messages.success(request, "Quiz submitted successfully!")
@@ -345,15 +389,13 @@ def review_attempt(request, attempt_id,quiz_id):
     elif not (user.is_admin or is_enrolled):
         raise PermissionDenied("You are not allowed to view an attempt to a quiz belonging to a course you are not enrolled in")
 
-
-    # Broke down in the context to make it easier and more readable in template
     context = {'attempt': attempt, 'quiz': quiz, 'user_id':attempt.user.id}
 
     return render(request, 'student/review_attempt.html', context)
 
 @login_required(login_url='/users/login/')
 def review_response(request, attempt_id, quiz_question_id):
-    attempt = get_object_or_404(Attempt, id=attempt_id, user=request.user)
+    attempt = get_object_or_404(Attempt, id=attempt_id)
     response = attempt.responses.filter(quiz_question_id=quiz_question_id).first()
     user = request.user
 
@@ -371,7 +413,7 @@ def review_response(request, attempt_id, quiz_question_id):
 
     if not response:
         return HttpResponse("<div class='alert alert-danger'>Response not found.</div>")
-
+    question = response.quiz_question.question
     question_type = response.quiz_question.question.question_type
 
     context = {
@@ -381,9 +423,18 @@ def review_response(request, attempt_id, quiz_question_id):
 
     if question_type in [QuestionType.MCQ, QuestionType.EITHER_OR]:
         if question_type == QuestionType.MCQ:
+            options = question.mcqoption_set.all()
             context['user_selected_option_ids'] = response.selected_options.values_list('mcq_option_id', flat=True)
         else:
+            options = question.eitheroroption_set.all()
             context['user_selected_option_ids'] = response.selected_options.values_list('eo_option_id', flat=True)
+
+        max_marks = sum(option.maximum_mark for option in options)
+        context['question_max_mark'] = max_marks
+    elif question_type == QuestionType.SHORT_ANSWER:
+        context['question_max_mark'] = question.shortanswerquestionoption.maximum_mark
+    elif question_type == QuestionType.ESSAY_QUESTION:
+        context['question_max_mark'] = question.essayquestionoption.maximum_mark
 
     if question_type == QuestionType.MCQ:
         template_name = 'partials/review/review_mcq_partial.html'
@@ -397,6 +448,122 @@ def review_response(request, attempt_id, quiz_question_id):
         return HttpResponse("Question type not supported.")
 
     return render(request, template_name, context)
+
+@login_required(login_url='/users/login/')
+@require_POST
+def update_student_marks(request, response_id):
+    response = get_object_or_404(Response, id=response_id)
+    attempt = response.attempt
+    quiz = attempt.quiz
+
+    if not is_staff_and_enrolled(request,quiz.id):
+        raise PermissionDenied("You are not allowed to complete this action")
+
+    question = response.quiz_question.question
+    max_marks = Decimal('0.00')
+
+    # Calculate Max Marks
+    if question.question_type == QuestionType.MCQ:
+        max_marks = sum(option.maximum_mark for option in question.mcqoption_set.all())
+    elif question.question_type == QuestionType.EITHER_OR:
+        max_marks = sum(option.maximum_mark for option in question.eitheroroption_set.all())
+    elif question.question_type == QuestionType.SHORT_ANSWER:
+        max_marks = question.shortanswerquestionoption.maximum_mark
+    elif question.question_type == QuestionType.ESSAY_QUESTION:
+        max_marks = question.essayquestionoption.maximum_mark
+    else:
+        return HttpResponseBadRequest("Question type not supported.")
+
+    raw_new_marks = request.POST.get('new_marks')
+
+    try:
+        new_marks = Decimal(raw_new_marks)
+    except (InvalidOperation, TypeError, ValueError):
+        return HttpResponse(
+            f'<div class="alert alert-danger mt-3 p-2 text-center shadow-sm">'
+            f'Invalid marks given!'
+            f'</div>'
+        )
+
+    if new_marks > Decimal(max_marks):
+        return HttpResponse(
+            f'<div class="alert alert-danger mt-3 p-2 text-center shadow-sm">'
+            f'marks exceed maximum marks of {max_marks}!'
+            f'</div>'
+        )
+
+    if new_marks < Decimal('0.00'):
+        return HttpResponse(
+            f'<div class="alert alert-danger mt-3 p-2 text-center shadow-sm">'
+            f'Marks cannot be negative!'
+            f'</div>'
+        )
+
+    response.marks_given = new_marks
+    response.save()
+    attempt.calculate_total_score()
+
+    if new_marks > Decimal('0.00'):
+        btn_color = "btn-success"
+        badge_color = "bg-success"
+        ui_color = "success"
+    else:
+        btn_color = "btn-danger"
+        badge_color = "bg-danger"
+        ui_color = "danger"
+
+    total_marks = attempt.total_marks_given if attempt.total_marks_given else "0.00"
+    quiz_max_marks = quiz.maximum_marks
+
+    total_score_update = f"""                
+        <div id="total-marks-container" hx-swap-oob="true">
+            <div class="card-body text-center py-3">
+                <h2 class="display-5 fw-bold mb-0">
+                    {total_marks}<span class="text-muted fs-4">/{quiz_max_marks}</span>
+                </h2>
+            </div>
+        </div>
+    """
+
+    question_badge_oob = f"""
+        <div class="d-block" id="question-score-badge-{response.id}" hx-swap-oob="true">
+            <span class="badge rounded-pill fs-6 px-4 py-2 shadow-sm {badge_color}">
+                {new_marks} / {max_marks}
+            </span>
+        </div>
+        """
+
+    nav_url = reverse('review_response', args=[attempt.id, response.quiz_question.id])
+
+    nav_button_oob = f"""
+        <button id="nav-button-{response.id}" hx-swap-oob="true"
+                class="btn fw-bold p-0 shadow-sm {btn_color}"
+                style="width: 45px; height: 45px; line-height: 43px;"
+                hx-get="{nav_url}"
+                hx-target="#center-review-container"
+                hx-swap="innerHTML">
+            {response.quiz_question.order_sequence}
+        </button>
+        """
+
+    success_alert = f"""
+        <div class="alert alert-success mt-3 p-2 text-center shadow-sm">
+            <i class="bi bi-check-circle-fill"></i> Score updated to {new_marks}!
+        </div>
+
+        <script>
+            var mainCard = document.getElementById('q{response.quiz_question.order_sequence}');
+            if (mainCard) {{
+                // Strip away all possible border colors
+                mainCard.classList.remove('border-warning', 'border-danger', 'border-success');
+                // Add the new border color dynamically
+                mainCard.classList.add('border-{ui_color}');
+            }}
+        </script>
+        """
+
+    return HttpResponse(total_score_update + question_badge_oob + nav_button_oob + success_alert)
+
 
 
 @login_required(login_url='/users/login/')
@@ -488,3 +655,17 @@ def user_is_enrolled(request, quiz_or_course_id, id_type='quiz'):
     else:
         course = get_object_or_404(Course, id=quiz_or_course_id)
     return course.enrollment.filter(id=request.user.id).exists()
+
+def create_new_attempt(user, quiz):
+    """Helper function to  generate a new attempt."""
+    attempt_count = Attempt.objects.filter(quiz=quiz, user=user).count()
+
+    if quiz.maximum_attempts != -1 and attempt_count >= quiz.maximum_attempts:
+        return None  # Failed to create due to limits
+
+    new_attempt = Attempt.objects.create(
+        quiz=quiz,
+        user=user,
+        attempt_count=attempt_count + 1,
+    )
+    return new_attempt

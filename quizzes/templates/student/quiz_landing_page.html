@@ -21,6 +21,7 @@
                             <div>
                                 <i class="bi bi-stopwatch fs-4 d-block mb-1"></i>
                                 <strong>{{ quiz.time_limit }} mins</strong>
+                                <span class="text-muted small d-block">Extra time does not appear here</span>
                             </div>
                             <div>
                                 <i class="bi bi-arrow-repeat fs-4 d-block mb-1"></i>
@@ -35,25 +36,46 @@
                             </div>
                         </div>
 
-                        <form method="POST" class="d-flex flex-column gap-3 mt-4 mx-auto" style="max-width: 350px;">
-                            {% csrf_token %}
+                        <div class="d-flex flex-column gap-3 mt-4 mx-auto" style="max-width: 350px;">
 
-                            <button type="submit" class="btn btn-primary btn-lg rounded-2 fw-bold px-5 py-3 shadow-sm w-100">
+                            <div id="start-quiz-action-area" class="w-100">
+
                                 {% if resuming %}
-                                    <i class="bi bi-play-circle-fill me-2 fs-5 align-middle"></i> Resume Attempt
-                                {% else %}
-                                    <i class="bi bi-play-fill me-2 fs-5 align-middle"></i> Start Attempt
-                                {% endif %}
-                            </button>
+                                    <form method="POST" action="{% url 'quiz_landing' quiz.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary btn-lg rounded-2 fw-bold px-5 py-3 shadow-sm w-100">
+                                            <i class="bi bi-play-circle-fill me-2 fs-5 align-middle"></i> Resume Attempt
+                                        </button>
+                                    </form>
 
+                                {% else %}
+                                    {% if quiz.password %}
+                                        <button class="btn btn-primary btn-lg rounded-2 fw-bold px-5 py-3 shadow-sm w-100"
+                                                hx-get="{% url 'quiz_password_prompt' quiz.id %}"
+                                                hx-target="#start-quiz-action-area"
+                                                hx-swap="innerHTML">
+                                            <i class="bi bi-lock-fill me-2 fs-5 align-middle"></i> Unlock & Start
+                                        </button>
+                                    {% else %}
+                                        <form method="POST" action="{% url 'quiz_landing' quiz.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-primary btn-lg rounded-2 fw-bold px-5 py-3 shadow-sm w-100">
+                                                <i class="bi bi-play-fill me-2 fs-5 align-middle"></i> Start Attempt
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                {% endif %}
+
+                            </div>
                             <a href="{% url 'course_detail' quiz.course_id %}" class="btn btn-outline-secondary btn-lg rounded-2 px-5 py-3 fw-bold w-100 text-center">
                                 Cancel
                             </a>
 
-                        <a href="{% url 'quiz_history' quiz.id request.user.id %}" class="btn btn-outline-secondary btn-lg px-4 rounded-2 shadow-sm d-flex justify-content-center align-items-center">
-                            <i class="bi bi-clock-history me-2"></i> View Past Attempts
-                        </a>
-                        </form>
+                            <a href="{% url 'quiz_history' quiz.id request.user.id %}" class="btn btn-outline-secondary btn-lg px-4 py-3 rounded-2 shadow-sm d-flex justify-content-center align-items-center">
+                                <i class="bi bi-clock-history me-2"></i> View Past Attempts
+                            </a>
+                        </div>
+
                     </div>
                 </div>
             </div>

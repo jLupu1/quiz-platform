@@ -60,6 +60,7 @@ class UpdateUserView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['source'] = self.request.GET.get('source')
         context['enrolled_courses'] = self.object.enrolled_courses.all()
         return context
 
@@ -91,6 +92,13 @@ class CustomLoginView(UserPassesTestMixin,LoginView):
 
     def test_func(self):
         return not self.request.user.is_authenticated
+    def get_success_url(self):
+        user = self.request.user
+
+        if user.is_admin:
+            return reverse_lazy('admin_course_list')
+
+        return reverse_lazy('courses')
 
 
 class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):

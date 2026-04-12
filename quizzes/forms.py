@@ -12,7 +12,7 @@ class CreateQuizForm(forms.ModelForm):
                   'maximum_attempts', 'delay_between_attempts', 'shuffle_questions', 'shuffle_answers',
                   'review_attempt', 'review_right_answer', 'review_marks', 'review_specific_feedback',
                   'review_general_feedback', 'review_overall_feedback', 'show_user_picture', 'anonymise_student',
-                  'anonymise_marker', 'overall_feedback']
+                  'anonymise_marker', 'overall_feedback','password']
 
         widgets = {
             'open_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
@@ -22,7 +22,6 @@ class CreateQuizForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Your awesome styling loop stays exactly the same!
         for field_name, field in self.fields.items():
             if isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs['class'] = 'form-check-input'

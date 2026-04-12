@@ -1,0 +1,18 @@
+<div id="score-widget-container" hx-swap-oob="true">
+    <div class="card border-dark shadow-sm sticky-top mt-2" style="top: 2rem;">
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-center mb-4 border-bottom pb-2">Adjust score</h5>
+            <form hx-post="{% url 'update_student_marks' response.id %}"
+                  hx-swap="innerHTML" hx-target="#score-feedback-{{ response.id }}">
+                {% csrf_token %}
+                <p>Maximum mark for this question is: {{ question_max_mark}}</p>
+
+                <div class="input-group">
+                    <input type="number" step="0.1" name="new_marks" class="form-control" value="{{ response.marks_given }}">
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+        <div id="score-feedback-{{ response.id }}"></div>
+    </div>
+</div>
