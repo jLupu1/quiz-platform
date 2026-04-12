@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
@@ -310,7 +311,35 @@ def delete_question(request, **kwargs):
 
     updated_questions = QuizQuestion.objects.filter(quiz_id=quiz_question.quiz_id)
     return render(request, 'partials/question_list_partial.html', {'questions': updated_questions})
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_staff_member, login_url='/users/login/')
+def question_bank(request, course_id):
+    if not is_staff_and_enrolled(request,course_id):
+        raise PermissionDenied("You are not enrolled in this module/course")
 
+
+    course = get_object_or_404(Course, pk=course_id)
+    questions = QuizQuestion.objects.filter(quiz__course=course)
+    print(questions)
+    return render(request, 'question_bank.html', {'questions': questions, 'course': course})
+
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda u: u.is_staff_member, login_url='/users/login/')
+def search_questions(request, course_id):
+    if not is_staff_and_enrolled(request,course_id):
+        raise PermissionDenied("You are not enrolled in this module/course")
+
+    course = get_object_or_404(Course, id=course_id)
+    questions = QuizQuestion.objects.filter(quiz__course=course)
+
+    search = request.GET.get('search', '')
+
+    if search:
+        questions = questions.filter(
+            Q(question__question_text__icontains=search) |
+            Q(question__question_type__icontains=search)
+        )
+    return render(request,"partials/question_bank_record_partial.html",{"questions":questions})
 
 # ---------- HELPER FUNCTIONS ----------
 def create_mcq_question(request, question):

@@ -19,12 +19,9 @@ def process_quiz_submission(attempt:Attempt):
                 try:
                     marks = ai_engine.grade_short_answer(response,question)
 
-                    print("marks in the service is ")
                     response.marks_given = marks
                     response.save()
                 except Exception as e:
-                    print("Exception occured")
-                    print(e)
                     response.marks_given = None
                     response.save()
 
