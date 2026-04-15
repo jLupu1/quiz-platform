@@ -1,0 +1,10 @@
+[run]
+omit =
+    */migrations/*
+    */__init__.py
+    manage.py
+    com3610/asgi.py
+    com3610/wsgi.py
+    com3610/settings.py
+    venv/*
+    env/*

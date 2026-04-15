@@ -1,3 +1,4 @@
+import random
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -179,7 +180,7 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def test_func(self):
         attempt_id = self.kwargs.get('attempt_id')
-        attempt = get_object_or_404(Attempt, id=attempt_id)
+        attempt = get_object_or_404(Attempt, id=attempt_id, user=self.request.user)
 
         return is_student_enrolled(self.request, attempt.quiz.id)
 
@@ -206,7 +207,10 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
 
          # TODO shuffle the list ...
-        context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
+        if attempt.quiz.shuffle_questions:
+            context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('?')
+        else:
+            context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
         context['first_question'] = context['question_list'].first()
 
         answered_ids = attempt.responses.values_list('quiz_question_id', flat=True)

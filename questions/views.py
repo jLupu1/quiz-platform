@@ -23,7 +23,7 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
     template_name = 'create_question.html'
 
     def test_func(self):
-        return is_staff_and_enrolled(self.request, self.kwargs)
+        return is_staff_and_enrolled(self.request, self.kwargs['quiz_id'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -167,7 +167,7 @@ class ViewQuestions(LoginRequiredMixin, UserPassesTestMixin,ListView):
         return context
 
     def test_func(self, **kwargs):
-        return is_staff_and_enrolled(self.request, self.kwargs)
+        return is_staff_and_enrolled(self.request, self.kwargs['quiz_id'])
 
 
 class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -179,7 +179,8 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     fields = []
 
     def test_func(self):
-       return is_staff_and_enrolled(self.request, self.kwargs)
+        quiz_question = get_object_or_404(QuizQuestion, id=self.kwargs.get('pk'))
+        return is_staff_and_enrolled(self.request, quiz_question.quiz_id)
 
 
     def get_context_data(self, **kwargs):
@@ -303,10 +304,10 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 @login_required(login_url='/users/login/')
 @require_http_methods(["DELETE"]) # Block GET links
 def delete_question(request, **kwargs):
-    if not is_staff_and_enrolled(request,kwargs):
+    quiz_question = get_object_or_404(QuizQuestion, pk=kwargs['pk'])
+    if not is_staff_and_enrolled(request,quiz_question.quiz_id):
         raise PermissionDenied("You are not enrolled in this module/course")
 
-    quiz_question = get_object_or_404(QuizQuestion, pk=kwargs['pk'])
     quiz_question.delete()
 
     updated_questions = QuizQuestion.objects.filter(quiz_id=quiz_question.quiz_id)
@@ -314,7 +315,7 @@ def delete_question(request, **kwargs):
 @login_required(login_url='/users/login/')
 @user_passes_test(lambda u: u.is_staff_member, login_url='/users/login/')
 def question_bank(request, course_id):
-    if not is_staff_and_enrolled(request,course_id):
+    if not is_staff_and_enrolled(request,course_id,id_type='course'):
         raise PermissionDenied("You are not enrolled in this module/course")
 
 
@@ -326,7 +327,7 @@ def question_bank(request, course_id):
 @login_required(login_url='/users/login/')
 @user_passes_test(lambda u: u.is_staff_member, login_url='/users/login/')
 def search_questions(request, course_id):
-    if not is_staff_and_enrolled(request,course_id):
+    if not is_staff_and_enrolled(request,course_id,id_type='course'):
         raise PermissionDenied("You are not enrolled in this module/course")
 
     course = get_object_or_404(Course, id=course_id)
@@ -434,21 +435,21 @@ def create_essay_question(request, question):
         model_answer=model_answer,
     )
 
-
-def is_staff_and_enrolled(request,kwargs):
-    """Get to course via pk (quiz_question) or quiz_id. Then get if user is enrolled. Admin passed automatically"""
-    if request.user.role == UserRole.ADMIN:
+# ---------- HELPER FUNCTIONS ----------
+def is_staff_and_enrolled(request, quiz_id, id_type='quiz'):
+    if request.user.is_admin:
         return True
+    is_enrolled = user_is_enrolled(request, quiz_id, id_type)
+    return is_enrolled and request.user.is_staff_member
+
+# def is_student_enrolled(request, quiz_id, id_type='quiz'):
+#     is_enrolled = user_is_enrolled(request, quiz_id, id_type)
+#     return is_enrolled and request.user.is_student
+
+def user_is_enrolled(request, quiz_or_course_id, id_type='quiz'):
+    if id_type == 'quiz':
+        quiz = get_object_or_404(Quiz, id=quiz_or_course_id)
+        course = get_object_or_404(Course, id=quiz.course_id)
     else:
-        quiz = None
-        if kwargs.get('quiz_id'):
-            quiz = get_object_or_404(Quiz, id=kwargs.get('quiz_id'))
-        elif kwargs.get('pk'):
-            quiz_question = get_object_or_404(QuizQuestion, id=kwargs.get('pk'))
-            quiz = quiz_question.quiz
-
-        if not quiz:
-            return False
-
-        is_enrolled = quiz.course.enrollment.filter(id=request.user.id).exists()
-        return is_enrolled and request.user.is_staff_member
+        course = get_object_or_404(Course, id=quiz_or_course_id)
+    return course.enrollment.filter(id=request.user.id).exists()
