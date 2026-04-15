@@ -11,3 +11,4 @@ profile_pics/
 marking_rubrics/
 htmlcov/
 .coverage
+test_gemini.py
