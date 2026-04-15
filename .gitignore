@@ -8,5 +8,6 @@ venv/
 __pycache__/
 django_notes
 profile_pics/
+marking_rubrics/
 htmlcov/
 .coverage

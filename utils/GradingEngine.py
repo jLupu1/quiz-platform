@@ -1,6 +1,9 @@
 import os
 from decimal import Decimal
 
+from dotenv import load_dotenv
+from google import genai
+
 from questions.models import Question
 from quizzes.models import Response
 import nltk
@@ -101,3 +104,18 @@ class GradingEngine:
             return round(sa_obj.maximum_mark * final_scale, 2)
         else:
             return Decimal(0)
+
+    def grade_essay(self,response:Response,question:Question):
+        essay_obj = question.essayquestionoption
+        student_text = response.answer_given.strip()
+
+        load_dotenv()
+
+        api_key = os.getenv("GEMINI_API_KEY")
+        client = genai.Client(api_key=api_key)
+
+        response = client.models.generate_content(
+            model="gemini-3-flash-preview",
+            contents="Given the question - What is phishing? - What would you grade the answer out of 5 provided by a student - Phishing is a sort of social engineering cyberattack aimed at stealing personal information. "
+        )
+        print(response.text)

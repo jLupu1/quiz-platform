@@ -14,7 +14,7 @@
         <input type="button" value="Back" onclick="history.go(-1);" class="btn btn-outline-secondary rounded-2 px-4">
     </div>
 
-    <form method="POST" id="edit-question-form">
+    <form method="POST" id="edit-question-form" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="card border-0 shadow-sm rounded-4 mb-4">
