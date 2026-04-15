@@ -22,6 +22,7 @@ def process_quiz_submission(attempt:Attempt):
                     response.marks_given = marks
                     response.save()
                 except Exception as e:
+                    print(e)
                     response.marks_given = None
                     response.save()
 

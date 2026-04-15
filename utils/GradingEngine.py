@@ -3,6 +3,17 @@ from decimal import Decimal
 
 from questions.models import Question
 from quizzes.models import Response
+import nltk
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+from thefuzz import fuzz
+
+try:
+    nltk.data.find('tokenizers/punkt')
+    nltk.data.find('punkt_tab')
+except LookupError:
+    nltk.download('punkt')
+    nltk.download('punkt_tab')
 
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 os.environ['TRANSFORMERS_VERBOSITY'] = 'error'
@@ -15,10 +26,10 @@ GLOBAL_MODEL = CrossEncoder('cross-encoder/stsb-roberta-base')
 class GradingEngine:
     def __init__(self):
         self.model = GLOBAL_MODEL
+        self.stemmer = PorterStemmer()
 
     def grade_short_answer(self,response:Response,question:Question):
         sa_obj = question.shortanswerquestionoption
-
 
         student_text = response.answer_given.strip()
         model_text = sa_obj.answer_text.strip()
@@ -39,11 +50,35 @@ class GradingEngine:
 
         # check at least one key word is used
         if sa_obj.required_words:
-            keywords = [kw.strip().lower() for kw in sa_obj.required_words]
-            student_lower = student_text.lower()
+            # tokenize to separate from punctuation.
+            student_tokens = word_tokenize(student_text.lower())
+            print(student_tokens)
 
-            #if no keywords used then 0 points
-            if not any(kw in student_lower for kw in keywords):
+            # stem words
+            stemmed_student_words = [self.stemmer.stem(word) for word in student_tokens]
+            print(stemmed_student_words)
+
+            keyword_found = False
+
+            for kw in sa_obj.required_words:
+                print(kw)
+                kw_lower = kw.strip().lower()
+                kw_stem = self.stemmer.stem(kw_lower)
+
+                # check to see if stemmed words appear
+                if kw_stem in stemmed_student_words:
+                    keyword_found = True
+                    break
+
+                # handle typos, check words are close enough
+                for token in student_tokens:
+                    if fuzz.ratio(kw_lower, token) >= 75:
+                        keyword_found = True
+                        break
+
+                if keyword_found:
+                    break
+            if not keyword_found:
                 return Decimal(0)
 
         # use model to get a score
@@ -63,7 +98,6 @@ class GradingEngine:
             base_scale = student_progress / zone_size
 
             final_scale = Decimal(0.5 + (0.5 * base_scale))
-
             return round(sa_obj.maximum_mark * final_scale, 2)
         else:
             return Decimal(0)
