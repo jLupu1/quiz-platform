@@ -239,6 +239,9 @@ class Response (models.Model):
     answer_given = models.TextField(null=True, blank=True) #if the question required text answer
     marks_given = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
+    automated_feedback = models.TextField(null=True, blank=True)
+    automated_reasoning = models.TextField(null=True, blank=True)
+
     class Meta:
         #student can only have ONE answer per question per attempt
         unique_together = ('attempt', 'quiz_question')

@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from enum import IntEnum
@@ -66,6 +68,15 @@ class EitherOrOption(models.Model):
     maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
 
+
+def rubric_file_name(instance, filename):
+    file_extension = filename.split('.')[-1]
+    identifier = instance.question.id
+
+    new_filename = f"{identifier}.{file_extension}"
+    return os.path.join('marking_rubrics', new_filename)
+
+
 class EssayQuestionOption(models.Model):
     question = models.OneToOneField('Question', on_delete=models.CASCADE)
     minimum_word_count = models.IntegerField(default=0)
@@ -73,6 +84,8 @@ class EssayQuestionOption(models.Model):
     maximum_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
     model_answer = models.CharField(null=True, blank=True)
     negative_mark = models.DecimalField(decimal_places=2, max_digits=10, default=0)
+    marking_rubric = models.FileField(upload_to=rubric_file_name,null=True, blank=True)
+    is_auto_mark = models.BooleanField(default=False)
 
 class ShortAnswerQuestionOption(models.Model):
     question = models.OneToOneField('Question', on_delete=models.CASCADE)

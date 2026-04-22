@@ -1,3 +1,4 @@
+import random
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -114,6 +115,9 @@ def quiz_landing_page(request, quiz_id):
 
     past_attempts = Attempt.objects.filter(quiz=quiz,user=request.user).order_by('-start_time')
     attempt_count = past_attempts.count()
+    reached_max = False
+    if attempt_count >= quiz.maximum_attempts != -1:
+        reached_max = True
 
     latest_attempt = past_attempts.first()
 
@@ -139,6 +143,7 @@ def quiz_landing_page(request, quiz_id):
     context = {
         'quiz': quiz,
         'attempt_count': attempt_count,
+        'reached_max':reached_max,
         'attempts_left' : quiz.maximum_attempts - attempt_count if quiz.maximum_attempts != -1 else 'Unlimited',
     }
     return render(request, 'student/quiz_landing_page.html', context)
@@ -179,7 +184,7 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def test_func(self):
         attempt_id = self.kwargs.get('attempt_id')
-        attempt = get_object_or_404(Attempt, id=attempt_id)
+        attempt = get_object_or_404(Attempt, id=attempt_id, user=self.request.user)
 
         return is_student_enrolled(self.request, attempt.quiz.id)
 
@@ -206,7 +211,10 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
 
          # TODO shuffle the list ...
-        context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
+        if attempt.quiz.shuffle_questions:
+            context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('?')
+        else:
+            context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('order_sequence')
         context['first_question'] = context['question_list'].first()
 
         answered_ids = attempt.responses.values_list('quiz_question_id', flat=True)
@@ -353,7 +361,6 @@ def quiz_history(request, quiz_id, user_id):
     source = request.GET.get('source')
 
 
-    # TODO AUTO TEST
     is_snooping_student = user.is_student and user.id != user_id
     is_enrolled = is_staff_and_enrolled(request, quiz_id) or is_student_enrolled(request, quiz_id)
 

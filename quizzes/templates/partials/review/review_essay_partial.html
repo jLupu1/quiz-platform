@@ -12,10 +12,17 @@
             <label class="fw-bold text-muted mb-2 text-uppercase small">Your Response:</label>
             <textarea class="form-control fs-5 bg-light text-dark mb-3" rows="6" disabled>{{ response.answer_given|default:'[No Essay Provided]' }}</textarea>
 
-            {% if response.manual_grading_feedback %}
+            {% if response.automated_reasoning and request.user.is_staff_member %}
                 <div class="p-3 bg-warning-subtle border border-warning rounded-2 mt-3">
-                    <span class="d-block fw-bold text-dark mb-1 small text-uppercase"><i class="bi bi-person-badge me-1"></i> Instructor Comment:</span>
-                    <span class="text-dark">{{ response.manual_grading_feedback }}</span>
+                    <span class="d-block fw-bold text-dark mb-1 small text-uppercase"><i class="bi bi-person-badge me-1"></i> AI Reasoning:</span>
+                    <span class="text-dark">{{ response.automated_reasoning }}</span>
+                </div>
+            {% endif %}
+
+            {% if quiz.review_specific_feedback and request.user.is_student and response.automated_feedback %}
+                <div class="p-3 bg-warning-subtle border border-warning rounded-2 mt-3">
+                    <span class="d-block fw-bold text-dark mb-1 small text-uppercase"><i class="bi bi-person-badge me-1"></i> AI Feedback:</span>
+                    <span class="text-dark">{{ response.automated_feedback }}</span>
                 </div>
             {% endif %}
         </div>
