@@ -24,6 +24,49 @@
                 <label class="form-label fw-bold">Model Answer (For Grading Reference) <span class="text-danger">*</span></label>
                 <textarea class="form-control" name="essay_model_answer" rows="4">{{ essay_options.model_answer }}</textarea>
             </div>
+
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check form-switch fs-5 mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="essay_is_auto_marked" name="essay_is_auto_marked" value="1" {% if essay_options.is_auto_mark %} checked {% endif %}>
+                    <label class="form-check-label fs-6 fw-bold ms-2 mt-1" for="essay_is_auto_marked">Enable Auto-Marking Engine</label>
+                </div>
+            </div>
+
+            <div class="col-12 mt-3">
+                <label class="form-label fw-bold">Marking Rubric (PDF or Image)</label>
+            <p class="text-muted text-sm">Recommended for better automated grading accuracy</p>
+
+                {% if essay_options.marking_rubric %}
+                    <div id="rubric-display-box" class="mb-3 p-3 border border-secondary-subtle rounded bg-light d-flex align-items-center justify-content-between shadow-sm">
+                        <div>
+                            <i class="bi bi-file-earmark-check-fill text-success me-2 fs-5 align-middle"></i>
+                            <a href="{{ essay_options.marking_rubric.url }}" target="_blank" class="text-decoration-none fw-bold align-middle">
+                                View Current Rubric
+                            </a>
+                        </div>
+
+                        <input type="hidden" name="clear_essay_rubric" id="clear_rubric_input" value="off">
+
+                        <button type="button" class="btn btn-outline-danger btn-sm fw-bold shadow-sm" onclick="removeRubric()">
+                            <i class="bi bi-trash"></i> Remove
+                        </button>
+                    </div>
+
+                    <script>
+                        function removeRubric() {
+                            document.getElementById('clear_rubric_input').value = 'on';
+
+                            let displayBox = document.getElementById('rubric-display-box');
+
+                            displayBox.classList.remove('d-flex');
+                            displayBox.classList.add('d-none');
+                        }
+                    </script>
+                {% endif %}
+
+                <input type="file" class="form-control" name="essay_marking_rubric" accept="application/pdf, image/png, image/jpeg, image/jpg">
+                <div class="form-text text-muted small">Max file size: 5MB. Acceptable formats: PDF, JPG, PNG.</div>
+            </div>
         </div>
     </div>
 </div>

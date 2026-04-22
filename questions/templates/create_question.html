@@ -45,7 +45,7 @@
         </div>
 
         <div class="col-lg-8 col-xl-8">
-            <form method="POST" id="question-form" novalidate>
+            <form method="POST" id="question-form" novalidate enctype="multipart/form-data">
                 {% csrf_token %}
                 {% if form.errors %}
                     <div class="alert alert-danger shadow-sm rounded-3 mb-4">

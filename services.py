@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from questions.models import QuestionType
 from quizzes.models import Attempt
 from utils.GradingEngine import GradingEngine
@@ -20,6 +22,29 @@ def process_quiz_submission(attempt:Attempt):
                     marks = ai_engine.grade_short_answer(response,question)
 
                     response.marks_given = marks
+                    response.save()
+                except Exception as e:
+                    print(e)
+                    response.marks_given = None
+                    response.save()
+        elif question.question_type == QuestionType.ESSAY_QUESTION:
+            essay_obj = question.essayquestionoption
+            if essay_obj.is_auto_mark:
+                try:
+                    data = ai_engine.grade_with_gemini(response,question)
+
+                    # Data returns JSON in form
+                    #    {"reasoning": "AI reasoning for teachers",
+                    #     "grade": 1,
+                    #     "student_feedback": "feedback for students"}}
+
+
+                    response.automated_reasoning = data.get("reasoning")
+                    response.automated_feedback = data.get("student_feedback")
+                    response.marks_given = Decimal(data.get("grade"))
+                    print(data.get("grade"))
+                    print(data.get("student_feedback"))
+                    print(data.get("reasoning"))
                     response.save()
                 except Exception as e:
                     print(e)

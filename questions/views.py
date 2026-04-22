@@ -416,24 +416,39 @@ def create_sa_question(request, question):
         use_exact_answer=exact_match
     )
 
+
 def create_essay_question(request, question):
     min_words = request.POST.get('essay_minword')
     max_words = request.POST.get('essay_maxword')
     max_marks = request.POST.get('essay_max_mark')
     negative_marks = request.POST.get('essay_negative_mark')
     model_answer = request.POST.get('essay_model_answer')
+    is_auto_mark = request.POST.get('essay_is_auto_marked') == '1'
 
-    if getattr(question, 'essayquestionoption',False):
-        question.essayquestionoption.delete()
+    essay_option, created = EssayQuestionOption.objects.get_or_create(question=question)
 
-    EssayQuestionOption.objects.create(
-        question=question,
-        minimum_word_count=min_words if min_words else 0,
-        maximum_word_count=max_words if max_words else None,
-        maximum_mark=max_marks if max_marks else 0,
-        negative_mark=negative_marks if negative_marks else 0,
-        model_answer=model_answer,
-    )
+    essay_option.minimum_word_count = min_words if min_words else 0
+    essay_option.maximum_word_count = max_words if max_words else None
+    essay_option.maximum_mark = max_marks if max_marks else 0
+    essay_option.negative_mark = negative_marks if negative_marks else 0
+    essay_option.model_answer = model_answer
+    essay_option.is_auto_mark = is_auto_mark
+
+
+    clear_rubric = request.POST.get('clear_essay_rubric')
+    print(clear_rubric)
+    if clear_rubric == 'on' and essay_option.marking_rubric:
+        essay_option.marking_rubric.delete(save=False)
+        essay_option.marking_rubric = None
+
+    new_rubric_file = request.FILES.get('essay_marking_rubric')
+    print(new_rubric_file)
+    if new_rubric_file:
+        if essay_option.marking_rubric:
+            essay_option.marking_rubric.delete(save=False)
+        essay_option.marking_rubric = new_rubric_file
+    essay_option.save()
+
 
 # ---------- HELPER FUNCTIONS ----------
 def is_staff_and_enrolled(request, quiz_id, id_type='quiz'):
@@ -442,9 +457,6 @@ def is_staff_and_enrolled(request, quiz_id, id_type='quiz'):
     is_enrolled = user_is_enrolled(request, quiz_id, id_type)
     return is_enrolled and request.user.is_staff_member
 
-# def is_student_enrolled(request, quiz_id, id_type='quiz'):
-#     is_enrolled = user_is_enrolled(request, quiz_id, id_type)
-#     return is_enrolled and request.user.is_student
 
 def user_is_enrolled(request, quiz_or_course_id, id_type='quiz'):
     if id_type == 'quiz':
