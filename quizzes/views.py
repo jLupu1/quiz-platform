@@ -115,6 +115,9 @@ def quiz_landing_page(request, quiz_id):
 
     past_attempts = Attempt.objects.filter(quiz=quiz,user=request.user).order_by('-start_time')
     attempt_count = past_attempts.count()
+    reached_max = False
+    if attempt_count >= quiz.maximum_attempts != -1:
+        reached_max = True
 
     latest_attempt = past_attempts.first()
 
@@ -140,6 +143,7 @@ def quiz_landing_page(request, quiz_id):
     context = {
         'quiz': quiz,
         'attempt_count': attempt_count,
+        'reached_max':reached_max,
         'attempts_left' : quiz.maximum_attempts - attempt_count if quiz.maximum_attempts != -1 else 'Unlimited',
     }
     return render(request, 'student/quiz_landing_page.html', context)
@@ -357,7 +361,6 @@ def quiz_history(request, quiz_id, user_id):
     source = request.GET.get('source')
 
 
-    # TODO AUTO TEST
     is_snooping_student = user.is_student and user.id != user_id
     is_enrolled = is_staff_and_enrolled(request, quiz_id) or is_student_enrolled(request, quiz_id)
 

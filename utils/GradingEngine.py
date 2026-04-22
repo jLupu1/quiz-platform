@@ -13,6 +13,7 @@ from nltk.tokenize import word_tokenize
 from thefuzz import fuzz
 
 try:
+    nltk.data.find('punkt')
     nltk.data.find('tokenizers/punkt')
     nltk.data.find('punkt_tab')
 except LookupError:

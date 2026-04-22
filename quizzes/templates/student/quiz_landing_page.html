@@ -21,9 +21,10 @@
                             <div>
                                 <i class="bi bi-stopwatch fs-4 d-block mb-1"></i>
                                 <strong>{{ quiz.time_limit }} mins</strong>
-                                <span class="text-muted small d-block">Extra time does not appear here</span>
+                                <span class="text-muted small d-block">Extra time does not show here</span>
                             </div>
                             <div>
+                            {% if not reached_max %}
                                 <i class="bi bi-arrow-repeat fs-4 d-block mb-1"></i>
                                 <strong>Attempt: {{ attempt_count|add:"1" }}</strong>
                                 <span class="text-muted small d-block">
@@ -32,7 +33,19 @@
                                 {% else %}
                                     (Max: {{ quiz.maximum_attempts|default:"?" }})
                                 {% endif %}
-                            </span>
+                                </span>
+                                {% else %}
+                                    <i class="bi bi-arrow-repeat fs-4 d-block mb-1"></i>
+                                    <strong>No more attempts</strong>
+                                    <span class="text-muted small d-block">
+                                    {% if quiz.maximum_attempts == -1 %}
+                                        (Max: Unlimited)
+                                    {% else %}
+                                        (Max: {{ quiz.maximum_attempts|default:"?" }})
+                                    {% endif %}
+                                    </span>
+                            {% endif %}
+
                             </div>
                         </div>
 
