@@ -321,7 +321,6 @@ def question_bank(request, course_id):
 
     course = get_object_or_404(Course, pk=course_id)
     questions = QuizQuestion.objects.filter(quiz__course=course)
-    print(questions)
     return render(request, 'question_bank.html', {'questions': questions, 'course': course})
 
 @login_required(login_url='/users/login/')
@@ -436,13 +435,11 @@ def create_essay_question(request, question):
 
 
     clear_rubric = request.POST.get('clear_essay_rubric')
-    print(clear_rubric)
     if clear_rubric == 'on' and essay_option.marking_rubric:
         essay_option.marking_rubric.delete(save=False)
         essay_option.marking_rubric = None
 
     new_rubric_file = request.FILES.get('essay_marking_rubric')
-    print(new_rubric_file)
     if new_rubric_file:
         if essay_option.marking_rubric:
             essay_option.marking_rubric.delete(save=False)
