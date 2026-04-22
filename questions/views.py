@@ -74,11 +74,11 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
                 return self.form_invalid(form)
 
         # Essay Validation
-        elif question_type == '3':
-            essay_model_answer = self.request.POST.get('essay_model_answer')
-            if not essay_model_answer or not essay_model_answer.strip():
-                form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
-                return self.form_invalid(form)
+        # elif question_type == '3':
+            # essay_model_answer = self.request.POST.get('essay_model_answer')
+            # if not essay_model_answer or not essay_model_answer.strip():
+            #     form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
+            #     return self.form_invalid(form)
 
         with transaction.atomic():
             question = form.save(commit=False)
@@ -252,11 +252,11 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                 return self.form_invalid(form)
 
         # Essay Validation
-        elif question_type == '3':
-            essay_model_answer = self.request.POST.get('essay_model_answer')
-            if not essay_model_answer or not essay_model_answer.strip():
-                form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
-                return self.form_invalid(form)
+        # elif question_type == '3':
+        #     essay_model_answer = self.request.POST.get('essay_model_answer')
+        #     if not essay_model_answer or not essay_model_answer.strip():
+        #         form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
+        #         return self.form_invalid(form)
 
         with transaction.atomic():
             quiz_question = form.save(commit=False)
@@ -430,7 +430,7 @@ def create_essay_question(request, question):
     essay_option.maximum_word_count = max_words if max_words else None
     essay_option.maximum_mark = max_marks if max_marks else 0
     essay_option.negative_mark = negative_marks if negative_marks else 0
-    essay_option.model_answer = model_answer
+    essay_option.model_answer = model_answer if model_answer else "No model answer provided"
     essay_option.is_auto_mark = is_auto_mark
 
 

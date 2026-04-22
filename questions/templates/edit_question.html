@@ -17,6 +17,23 @@
     <form method="POST" id="edit-question-form" enctype="multipart/form-data">
         {% csrf_token %}
 
+       {% if form.errors %}
+            <div class="alert alert-danger shadow-sm rounded-3 mb-4">
+                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i> Oops! Please fix the following errors:</h5>
+                <ul class="mb-0">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li><strong>{{ field.label }}</strong>: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-body p-4 p-md-5">
                 <h4 class="h5 fw-bold mb-4 border-bottom pb-2">General Settings</h4>

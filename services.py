@@ -38,16 +38,12 @@ def process_quiz_submission(attempt:Attempt):
                     #     "grade": 1,
                     #     "student_feedback": "feedback for students"}}
 
-
                     response.automated_reasoning = data.get("reasoning")
                     response.automated_feedback = data.get("student_feedback")
                     response.marks_given = Decimal(data.get("grade"))
-                    print(data.get("grade"))
-                    print(data.get("student_feedback"))
-                    print(data.get("reasoning"))
                     response.save()
                 except Exception as e:
-                    print(e)
+                    print(f"Print error with automatic grading: {e}")
                     response.marks_given = None
                     response.save()
 
