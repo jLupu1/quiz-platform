@@ -101,19 +101,17 @@ class CustomLoginView(UserPassesTestMixin,LoginView):
         return reverse_lazy('courses')
 
 
-class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+class CustomSignupView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin,CreateView):
     form_class = CustomSignupForm
     success_url = reverse_lazy("signup")
     template_name = 'registration/signup.html'
+    success_message = "New user successfully created!"
 
     def test_func(self):
         return self.request.user.role == UserRole.ADMIN
 
     def handle_no_permission(self):
         return redirect('/')
-
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
 
 class CustomPasswordResetView(PasswordResetView):
     form_class = CustomPasswordResetForm
