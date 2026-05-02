@@ -57,16 +57,13 @@ class GradingEngine:
         if sa_obj.required_words:
             # tokenize to separate from punctuation.
             student_tokens = word_tokenize(student_text.lower())
-            print(student_tokens)
 
             # stem words
             stemmed_student_words = [self.stemmer.stem(word) for word in student_tokens]
-            print(stemmed_student_words)
 
             keyword_found = False
 
             for kw in sa_obj.required_words:
-                print(kw)
                 kw_lower = kw.strip().lower()
                 kw_stem = self.stemmer.stem(kw_lower)
 

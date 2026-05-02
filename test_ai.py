@@ -6,7 +6,6 @@ print(f"Loading {model_name}... (This might take a few seconds longer than MiniL
 # Load the Cross-Encoder model
 model = CrossEncoder(model_name)
 
-# --- THE GOLDEN DATASET ---
 test_cases = [
     {
         "subject": "Biology (Process)",
@@ -44,7 +43,6 @@ for case in test_cases:
     print(f"\n[{case['subject'].upper()}]")
     print(f"Q: {case['question']}")
 
-    # CROSS-ENCODER LOGIC: We pass the model answer and the student answer together as a pair.
     # The model directly outputs a float score between 0.0 and 1.0.
     score_perfect = float(model.predict([case['model_answer'], case['perfect']]))
     score_partial = float(model.predict([case['model_answer'], case['partial']]))
