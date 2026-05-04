@@ -1,5 +1,4 @@
 from django.test import TestCase, Client, RequestFactory
-from decimal import Decimal
 
 from django.urls import reverse
 
