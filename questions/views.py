@@ -73,13 +73,6 @@ class CreateQuestionView(LoginRequiredMixin,UserPassesTestMixin,CreateView):
                 form.add_error(None, 'You must provide an Acceptable / Model Answer for Short Answer questions.')
                 return self.form_invalid(form)
 
-        # Essay Validation
-        # elif question_type == '3':
-            # essay_model_answer = self.request.POST.get('essay_model_answer')
-            # if not essay_model_answer or not essay_model_answer.strip():
-            #     form.add_error(None, 'You must provide a Model Answer / Grading Rubric for Essay questions.')
-            #     return self.form_invalid(form)
-
         with transaction.atomic():
             question = form.save(commit=False)
             question.save()
