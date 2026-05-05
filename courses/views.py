@@ -12,7 +12,7 @@ from users.models import UserRole
 
 
 # Create your views here.
-@login_required(login_url='/users/login')
+@login_required(login_url='/users/login/')
 def home_router(request):
     if request.user.is_admin:
         return redirect('admin_course_list')
@@ -26,7 +26,7 @@ class CoursesView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return self.request.user.enrolled_courses.all()
     def handle_no_permission(self):
-        return redirect('/users/login')
+        raise PermissionDenied("You are not allowed to access this page")
 
 class CourseCreateView(LoginRequiredMixin,UserPassesTestMixin, CreateView):
     model = Course
@@ -35,15 +35,15 @@ class CourseCreateView(LoginRequiredMixin,UserPassesTestMixin, CreateView):
     success_url = reverse_lazy('admin_course_list')
 
     def handle_no_permission(self):
-        return redirect('/users/login')
-
+        # return redirect('/users/login')
+        raise PermissionDenied("You are not allowed to access this page")
     # Only let them see this page if they are logged in AND are a admin
     def test_func(self):
         user = self.request.user
         return user.is_authenticated and user.is_admin
 
 
-@login_required(login_url='/users/login')
+@login_required(login_url='/users/login/')
 def course_detail(request, pk):
     course = get_object_or_404(Course, pk=pk)
     teachers = course.enrollment.filter(role=UserRole.TEACHER,is_active=True)
@@ -53,12 +53,18 @@ def course_detail(request, pk):
 
     all_quizzes = course.quiz_set.all()
 
-    # gets active and upcoming quizzes.
-    active_quizzes = [quiz for quiz in all_quizzes if quiz.is_currently_available
-                      or (quiz.open_date and quiz.open_date > timezone.now())]
-    closed_quizzes = [quiz for quiz in all_quizzes if not quiz.is_currently_available]
+    active_quizzes = []
+    closed_quizzes = []
 
-    active_quizzes = sorted(active_quizzes, key=lambda q: q.close_date or timezone.now())
+    now = timezone.now()
+
+    for quiz in all_quizzes:
+        if quiz.is_currently_available or (quiz.open_date and quiz.open_date > now):
+            active_quizzes.append(quiz)
+        else:
+            closed_quizzes.append(quiz)
+
+    active_quizzes.sort(key=lambda q: q.close_date or now)
 
     if not(is_admin or is_enrolled):
         raise PermissionDenied("You are not enrolled in this module/course")
@@ -77,7 +83,7 @@ def course_detail(request, pk):
         return render(request, 'courses/course_detail_student.html', context)
 
 @login_required(login_url='/users/login')
-@user_passes_test(lambda user: user.is_staff_member)
+@user_passes_test(lambda user: user.is_staff_member, login_url='/users/login/')
 def search_course_students(request,pk):
     # returns 404 if not found
     course = get_object_or_404(Course, pk=pk)
@@ -95,8 +101,8 @@ def search_course_students(request,pk):
     return render(request, 'partials/student_list_partial.html', {'students': students})
 
 # Admin page to see a complete list of courses
-@login_required(login_url='/users/login')
-@user_passes_test(lambda user: user.is_admin)
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda user: user.is_admin,login_url='/users/login/')
 def admin_course_list(request):
     courses = Course.objects.all()
     context = {
@@ -104,6 +110,8 @@ def admin_course_list(request):
     }
     return render(request, 'manage/admin_courses_list.html', context)
 
+@login_required(login_url='/users/login/')
+@user_passes_test(lambda user: user.is_admin)
 def search_courses(request):
     courses = Course.objects.all()
     search_text = request.GET.get('search', '')
@@ -118,8 +126,8 @@ def search_courses(request):
 class CourseUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Course
     form_class = CourseCreationForm
-    template_name = 'manage/create_update_course.html'  # Point this to your edit template
-    success_url = reverse_lazy('admin_course_list')  # Where to go after saving
+    template_name = 'manage/create_update_course.html'
+    success_url = reverse_lazy('admin_course_list')
 
     def test_func(self):
         return self.request.user.role == UserRole.ADMIN

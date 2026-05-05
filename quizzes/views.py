@@ -599,13 +599,15 @@ def search_quiz_students(request,quiz_id):
     students = course.enrollment.filter(role=UserRole.STUDENT,is_active=True)
     if quiz.anonymise_student:
         search_text = ''
+
     # Filters out based on what I searched for in the text box
-    if search_text:
-        students = students.filter(
-            Q(first_name__icontains=search_text) |
-            Q(last_name__icontains=search_text) |
-            Q(username__icontains=search_text)
-        )
+    else:
+        if search_text:
+            students = students.filter(
+                Q(first_name__icontains=search_text) |
+                Q(last_name__icontains=search_text) |
+                Q(username__icontains=search_text)
+            )
 
     context = {'quiz': quiz, 'users':students}
     return render(request, 'partials/teacher/teacher_student_attempt_list_partial.html', context)
