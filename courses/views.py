@@ -53,12 +53,18 @@ def course_detail(request, pk):
 
     all_quizzes = course.quiz_set.all()
 
-    # gets active and upcoming quizzes.
-    active_quizzes = [quiz for quiz in all_quizzes if quiz.is_currently_available
-                      or (quiz.open_date and quiz.open_date > timezone.now())]
-    closed_quizzes = [quiz for quiz in all_quizzes if not quiz.is_currently_available]
+    active_quizzes = []
+    closed_quizzes = []
 
-    active_quizzes = sorted(active_quizzes, key=lambda q: q.close_date or timezone.now())
+    now = timezone.now()
+
+    for quiz in all_quizzes:
+        if quiz.is_currently_available or (quiz.open_date and quiz.open_date > now):
+            active_quizzes.append(quiz)
+        else:
+            closed_quizzes.append(quiz)
+
+    active_quizzes.sort(key=lambda q: q.close_date or now)
 
     if not(is_admin or is_enrolled):
         raise PermissionDenied("You are not enrolled in this module/course")
