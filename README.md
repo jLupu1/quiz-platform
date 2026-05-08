@@ -1,4 +1,4 @@
-# Quiz Platform
+# AutoGrade
 
 A Django-based quiz platform designed to create, deliver, and manage quizzes with support for **automated marking**.
 
@@ -19,7 +19,7 @@ This project was developed as part of a dissertation project (COM3610) and inclu
 - `questions/` – question types and question bank
 - `quizzes/` – quizzes, attempts, submissions
 - `templates/`, `static/` – UI templates and static assets
-- `services.py` – submission processing & automated grading orchestration
+- `services.py` – submission processing & automated grading
 
 ## Prerequisites
 
@@ -27,11 +27,9 @@ This project was developed as part of a dissertation project (COM3610) and inclu
 - **PostgreSQL**
 - (Recommended) `virtualenv` / `venv`
 
-> Note: The repository does not currently include a `requirements.txt` / `pyproject.toml`. You will need to install dependencies manually (see below) or add a requirements file.
-
 ## Environment Variables
 
-The Django settings (`com3610/settings.py`) load environment variables (via `python-dotenv`) and expect the following values:
+The Django settings (`com3610/settings.py`) load environment variables (via `python-dotenv`) and use the following values:
 
 - `SECRET_KEY` – Django secret key
 - `DB_NAME` – PostgreSQL database name
@@ -72,7 +70,6 @@ source .venv/bin/activate
 
 3. **Install dependencies**
 
-Because there is no pinned dependency file in the repo, install the minimum set required to run the application:
 
 ```bash
 pip install \
@@ -82,7 +79,6 @@ pip install \
   django-htmx
 ```
 
-If your project uses additional packages, install them as needed.
 
 4. **Run database migrations**
 
@@ -90,7 +86,7 @@ If your project uses additional packages, install them as needed.
 python manage.py migrate
 ```
 
-5. **Create an admin user (optional, recommended)**
+5. **Create an admin user (optional but recommended)**
 
 ```bash
 python manage.py createsuperuser
@@ -110,18 +106,15 @@ Then open:
 
 ## Automated Marking
 
-Automated marking is orchestrated from `services.py` via `process_quiz_submission(...)`:
+Automated marking is controlled from `services.py` via `process_quiz_submission(...)`:
 
 - MCQ / Either-Or questions are auto-graded directly.
 - Short answer and essay questions can be auto-marked when configured (see question options) and will use the grading engine.
 
-Depending on your grading engine implementation, you may need to provide additional API keys/environment variables for any external AI provider.
+Currently, your grading engine implementation requires a Gemini API key.
+
 
 ## Development Notes
 
 - The project uses a custom user model: `AUTH_USER_MODEL = 'users.User'`.
-- Settings default `DEBUG = False`; for local development you may want to enable debug mode in `com3610/settings.py`.
-
-## License
-
-No license file is currently included in this repository. Add a `LICENSE` file if you plan to distribute this project.
+- Settings default `DEBUG = False`; for local development, you may want to enable debug mode in `com3610/settings.py`.
