@@ -111,7 +111,7 @@ Automated marking is controlled from `services.py` via `process_quiz_submission(
 - MCQ / Either-Or questions are auto-graded directly.
 - Short answer and essay questions can be auto-marked when configured (see question options) and will use the grading engine.
 
-Currently, your grading engine implementation requires a Gemini API key.
+Current grading engine implementation requires a Gemini API key.
 
 
 ## Development Notes
