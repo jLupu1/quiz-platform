@@ -102,6 +102,7 @@ def delete_quiz(request, **kwargs):
     quiz.delete()
 
     return HttpResponse("")
+
 @login_required(login_url='/users/login/')
 @user_passes_test(lambda u: u.is_student, login_url='/users/login/')
 def quiz_landing_page(request, quiz_id):
@@ -208,9 +209,6 @@ class StudentTakeQuiz(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 return redirect('quiz_landing', quiz_id=attempt.quiz.id)
             context['attempt'] = attempt
 
-
-
-         # TODO shuffle the list ...
         if attempt.quiz.shuffle_questions:
             context['question_list'] = attempt.quiz.quizquestion_set.all().order_by('?')
         else:
@@ -230,7 +228,6 @@ def question_engine(request, attempt_id, question_id):
     quiz_question = get_object_or_404(QuizQuestion, id=question_id, quiz=attempt.quiz)
 
     question_list = list(attempt.quiz.quizquestion_set.all().order_by('order_sequence'))
-    #TODO shuffle the list ...
     current_question_number = question_list.index(quiz_question) + 1
 
     if attempt.quiz.time_limit:
@@ -265,6 +262,7 @@ def question_engine(request, attempt_id, question_id):
             ResponseOption.objects.create(response=response, eo_option_id=option_id)
             successfully_saved = True
 
+    # Find existing response to resume
     elif request.method == "GET":
         existing_response = Response.objects.filter(attempt=attempt, quiz_question=quiz_question).first()
 
@@ -298,7 +296,6 @@ def question_engine(request, attempt_id, question_id):
     }
 
     question_enum_name = QuestionType(quiz_question.question.question_type).name
-    # TODO create a default blank or smth partial like a smth went wrong oops
     template_name = template_map.get(question_enum_name, 'partials/something_went_wrong.html')
     return render(request, template_name, context)
 

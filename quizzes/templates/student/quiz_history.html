@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% block title %} Attempt History {% endblock %}
 {% block content %}
 <div class="container py-5" style="max-width: 1000px;">
     
@@ -55,7 +55,7 @@
                             </td>
 
                             <td class="text-end pe-4">
-                                {% if quiz.review_attempt %}
+                                {% if quiz.review_attempt or request.user.is_staff_member %}
                                     <a href="{% url 'review_attempt' quiz.id attempt.id %}" class="btn btn-sm btn-outline-primary px-4 fw-bold rounded-2 shadow-sm">
                                         Review
                                     </a>
