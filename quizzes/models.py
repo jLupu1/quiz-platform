@@ -64,8 +64,7 @@ class Quiz (models.Model):
 
     @property
     def is_currently_available(self):
-        """This evaluates all rules in real-time."""
-
+        """This evaluates if a quiz is available to be taken"""
         #no qs?
         if not self.quizquestion_set.exists():
             return False
