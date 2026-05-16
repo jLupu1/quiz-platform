@@ -181,6 +181,3 @@ def error_500(request):
             'error_message': "Sorry, something went wrong.",
         }
         return render(request, 'errors/error_page.html', status=500, context=context)
-
-
-

@@ -123,7 +123,7 @@ class Quiz (models.Model):
         """blocks bad data from saving to the database."""
         super().clean()
 
-        # If the teacher tries to save it as OPEN or SCHEDULED, check for questions!
+        # If the teacher tries to save it as OPEN or SCHEDULED, check for questions
         if self.status in [self.QuizStatus.OPEN, self.QuizStatus.SCHEDULED]:
             if not self.pk or not self.quizquestion_set.exists():
                 raise ValidationError({
@@ -134,13 +134,11 @@ class Quiz (models.Model):
 
             # Check if the close date is before or exactly equal to the open date
             if self.close_date <= self.open_date:
-                # We target 'close_date' so the error attaches to that specific field
                 raise ValidationError({
                     'close_date': "The close date must be after the open date."
                 })
 
     def recalculate_maximum_marks(self):
-        """Calculates the max score by asking the database directly."""
         total = 0
         for qq in self.quizquestion_set.all():
             q = qq.question

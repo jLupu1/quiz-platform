@@ -3,7 +3,6 @@ from django.contrib.auth import get_user_model
 
 from users.models import UserRole
 from .models import Course
-# It is best practice to use get_user_model() instead of importing CustomUser directly!
 User = get_user_model()
 
 

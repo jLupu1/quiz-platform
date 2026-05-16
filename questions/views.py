@@ -148,6 +148,7 @@ class ViewQuestions(LoginRequiredMixin, UserPassesTestMixin,ListView):
     model = Question
     template_name = 'view_questions.html'
 
+    # custom query for get
     def get_queryset(self):
         qs = QuizQuestion.objects.filter(quiz_id=self.kwargs.get('quiz_id'))
         qs = qs.order_by('order_sequence')
@@ -184,7 +185,7 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         question = quiz_question.question
         context['question'] = question
 
-        # Pre-load the specific options based on type so the HTML can fill the values!
+        # Pre-load the specific options based on type to fill out values
         if question.question_type == 0:  # MCQ
             context['mcq_options'] = question.mcqoption_set.all()
             # To grab isMultipleAnswers
@@ -278,7 +279,7 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
             elif q_type == 3:
                 create_essay_question(self.request, question)
 
-            # --- TEXT FILLER ---
+            # --- TEXT FILLER --- NOT IMPLEMENTED
             elif q_type == 4:
                 tf_opt, created = TextFiller.objects.get_or_create(question=question)
 
@@ -291,7 +292,7 @@ class EditQuestion(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        # Redirect the teacher back to the split-screen Edit Quiz page
+        # Redirect the teacher back to the Edit Quiz page
         return reverse('edit-quiz', kwargs={'pk': self.object.quiz_id})
 
 @login_required(login_url='/users/login/')
@@ -343,7 +344,6 @@ def create_mcq_question(request, question):
     option_feedbacks = request.POST.getlist('mcq_option_feedback')
     is_correct_list = request.POST.getlist('mcq_is_correct_list')
 
-    # For when edit is done - won't have any side effects for new questions
     question.mcqoption_set.all().delete()
 
     for index, text in enumerate(options_texts):

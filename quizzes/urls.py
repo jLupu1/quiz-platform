@@ -21,7 +21,7 @@ urlpatterns = [
     path('quiz/<int:quiz_id>/review/<int:attempt_id>/',views.review_attempt, name='review_attempt'),
     path('attempt/<int:attempt_id>/review/question/<int:quiz_question_id>/', views.review_response, name='review_response'),
 
-#  Teacher REview
+#  Teacher Review
     path('quiz/<int:quiz_id>/teacher/user-attempts/',views.teacher_student_attempt_list,name='teacher_student_attempt_list'),
     path('quiz/response/<int:response_id>/teacher/update-score/',views.update_student_marks,name='update_student_marks'),
     path('quiz/<int:quiz_id>/teacher/user-attempts/search-user/', views.search_quiz_students, name='search_quiz_students'),

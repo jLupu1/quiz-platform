@@ -335,7 +335,7 @@ def quiz_results(request, attempt_id):
     total_questions = attempt.quiz.quizquestion_set.count()
     answered_questions = attempt.responses.count()
 
-    # Sees if there is response with null - meaning essay TODO for now
+    # Sees if there is response with null - meaning essay
     pending_grading = attempt.responses.filter(marks_given__isnull=True).exists()
 
 
@@ -440,6 +440,7 @@ def review_response(request, attempt_id, quiz_question_id):
     elif question_type == QuestionType.ESSAY_QUESTION:
         context['question_max_mark'] = question.essayquestionoption.maximum_mark
 
+    # Load corresponding partial template
     if question_type == QuestionType.MCQ:
         template_name = 'partials/review/review_mcq_partial.html'
     elif question_type == QuestionType.EITHER_OR:

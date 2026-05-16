@@ -37,7 +37,7 @@ class CourseCreateView(LoginRequiredMixin,UserPassesTestMixin, CreateView):
     def handle_no_permission(self):
         # return redirect('/users/login')
         raise PermissionDenied("You are not allowed to access this page")
-    # Only let them see this page if they are logged in AND are a admin
+    # Only let them see this page if they are logged in AND are an admin
     def test_func(self):
         user = self.request.user
         return user.is_authenticated and user.is_admin
